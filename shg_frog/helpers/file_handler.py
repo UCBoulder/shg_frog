@@ -22,6 +22,7 @@ INTERNAL_DATA_DIR = pathlib.Path(__file__).parents[1] / 'data'
 DEFAULT_CONFIG = {
     "camera model": "Manta G-234B NIR",
     "camera id": "DEV_000F314E1E59", # Necessary to select the camera
+    "spectrometer id": "None", # Necessary to select the camera
     "stage port": "/dev/ttyUSB0",
     "pixel size": 5.86, # Given in micron
     "pxls height": 1216, # Number of pixels in vertical

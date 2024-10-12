@@ -11,7 +11,7 @@ Python Version: 3.7
 """
 import numpy as np
 
-from labdevices import ando, allied_vision
+# from labdevices import ando, allied_vision
 
 
 class _CameraMixin:
@@ -77,10 +77,10 @@ class _CameraMixin:
     def set_trig_source(self, source):
         self.trig_source = source
 
-class Camera(allied_vision.Manta, _CameraMixin):
+# class Camera(allied_vision.Manta, _CameraMixin):
     """ Manta camera with some additional features. """
 
-class CameraDummy(allied_vision.MantaDummy, _CameraMixin):
+# class CameraDummy(allied_vision.MantaDummy, _CameraMixin):
     """ Manta camera dummy with some additional features """
 
 class _SpectrometerMixin:
@@ -93,8 +93,8 @@ class _SpectrometerMixin:
         y_data = self.get_y_data()
         return y_data
 
-class Spectrometer(ando.SpectrumAnalyzer, _SpectrometerMixin):
+# class Spectrometer(ando.SpectrumAnalyzer, _SpectrometerMixin):
     """ Spectrometer with additional features. """
 
-class SpectrometerDummy(ando.SpectrumAnalyzerDummy, _SpectrometerMixin):
+# class SpectrometerDummy(ando.SpectrumAnalyzerDummy, _SpectrometerMixin):
     """ Spectrometer Dummy with additional features. """

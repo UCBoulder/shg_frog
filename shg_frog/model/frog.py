@@ -16,6 +16,8 @@ from . import acquisition
 from . import phase_retrieval
 from ..helpers.file_handler import FileHandler
 from ..helpers.data_types import Data
+from ..hardware_comms.device_interfaces import LinearMotor, Spectrometer
+from ..hardware_comms.connect_devices import connect_devices
 
 SPEEDOFLIGHT = 299792458. #m/s
 
@@ -32,17 +34,19 @@ class FROG:
         self.files = FileHandler()
         self._config = self.files.get_main_config()
         stage_port = self._config['stage port']
-        camera_id = self._config['camera id']
+        # camera_id = self._config['camera id']
+        spectrometer_id = self._config['spectrometer id']
         # Load the FROG devices (optional: virtual devices for testing)
         if test:
             # Instantiate dummies
-            self.stage = newport.SMC100Dummy(port=stage_port, dev_number=1)
-            self.camera = acquisition.CameraDummy(camera_id)
-            #self.ando = acquisition.SpectrometerDummy(ip_addr='10.0.0.40', gpib=1)
+            # self.stage = newport.SMC100Dummy(port=stage_port, dev_number=1)
+            # self.camera = acquisition.CameraDummy(camera_id)
+            self.stage, self.spectrometer = connect_devices()
         else:
+            pass
             # Instantiate the real stuff
-            self.stage = newport.SMC100(port=stage_port, dev_number=1)
-            self.camera = acquisition.Camera(camera_id)
+            # self.stage = newport.SMC100(port=stage_port, dev_number=1)
+            # self.camera = acquisition.Camera(camera_id)
             #self.ando = acquisition.Spectrometer(ip_addr='10.0.0.40', gpib=1)
 
         # Will contain the measurement data and settings
@@ -54,14 +58,16 @@ class FROG:
 
     def initialize(self) -> None:
         """Connect to the devices."""
-        self.stage.initialize()
-        self.camera.initialize()
+        # self.stage.initialize()
+        # self.camera.initialize()
+        self.stage, self.spectrometer = connect_devices()
         print("Devices connected!")
 
     def close(self):
         """Close connection with devices."""
         self.stage.close()
-        self.camera.close()
+        self.spectrometer.close()
+        # self.camera.close()
         print("Devices disconnected!")
 
 
@@ -81,7 +87,8 @@ class FROG:
             self.stage.move_abs(meta['start position']+i*meta['step size'])
             self.stage.wait_move_finish(0.05)
             # Record spectrum
-            y_data = self.camera.get_spectrum()
+            # y_data = self.camera.get_spectrum()
+            y_data = self.spectrometer.intensities()
             # Create 2d frog-array to fill with data
             if i==0:
                 frog_array = np.zeros((len(y_data), meta['step number']))
@@ -119,8 +126,9 @@ class FROG:
             'center position': self.parameters.get_center_position(),
             'start position': self.parameters.get_start_position(),
             'step number': self.parameters.get_step_num(),
-            'camera': self.camera.idn,
-            'bit depth': self.camera.pix_format,
+            # 'camera': self.camera.idn,
+            'spectrometer': self.spectrometer,
+            # 'bit depth': self.camera.pix_format,
             'step size': step_size,
             'ccddt': ccddt,
             'ccddv': ccddv,
