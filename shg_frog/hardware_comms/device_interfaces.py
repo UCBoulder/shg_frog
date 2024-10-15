@@ -56,7 +56,7 @@ class LinearMotor(ABC):
             try:
                 self._read_T0_from_file()
             except FileNotFoundError:
-                self._T0_um = self.pos_um()
+                self._T0_um = self.position()
                 self._write_T0_to_file()
             return self._T0_um
 
@@ -70,8 +70,9 @@ class LinearMotor(ABC):
         self._T0_um = dist_um
         self._write_T0_to_file()
 
+    @property
     @abstractmethod
-    def pos_um(self) -> float:
+    def position(self) -> float:
         '''
         Get stage position in microns
 
@@ -86,7 +87,7 @@ class LinearMotor(ABC):
 
         returns: float of the stage location, in femtoseconds
         '''
-        return dist_um_to_T_fs(self.pos_um - self.T0_um)
+        return dist_um_to_T_fs(self.position - self.T0_um)
 
 
     @abstractmethod
@@ -234,6 +235,10 @@ class Spectrometer(ABC):
                 [0] = wavelengths
                 [1] = intensities
         '''
+        pass
+    @property
+    @abstractmethod
+    def idn(self) -> int:
         pass
 
     @property

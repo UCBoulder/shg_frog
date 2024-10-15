@@ -20,6 +20,7 @@ INTERNAL_DATA_DIR = pathlib.Path(__file__).parents[1] / 'data'
 
 
 DEFAULT_CONFIG = {
+    "spectral device": 'Spectrometer',
     "camera model": "Manta G-234B NIR",
     "camera id": "DEV_000F314E1E59", # Necessary to select the camera
     "spectrometer id": "None", # Necessary to select the camera

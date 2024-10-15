@@ -20,13 +20,14 @@ class ThorlabsKinesisMotor(LinearMotor):
             raise StageNotCalibratedException(
                 "No step to distance calibration found. Input this manually.")
 
-    def pos_um(self):
+    @property
+    def position(self):
         # default units are (m)
         try:
-            self._pos_um = 1e6 * self.motor.get_position()
+            self._position = self.motor.get_position()
         except ThorlabsError:
             pass
-        return self._pos_um
+        return self._position
 
     def is_in_motion(self) -> bool:
         try:
@@ -49,7 +50,7 @@ class ThorlabsKinesisMotor(LinearMotor):
         dist_m = dist_um * 1e-6
 
         # move the motor to the new position and update the position in micron
-        if not (self.travel_limits_um[0] <= (dist_um + self.pos_um()) <= self.travel_limits_um[1]):
+        if not (self.travel_limits[0] <= (dist_um + self.position()) <= self.travel_limits[1]):
             raise StageOutOfBoundsException(
                 "Location would exceed software limits")
         else:

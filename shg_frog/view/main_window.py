@@ -17,6 +17,7 @@ import pyqtgraph as pg
 from . import general_worker
 from .roi_window import ROIGraphics
 from .retrieval_window import RetrievalWindow
+from ..model.frog import FROG
 from ..helpers.file_handler import DATA_DIR, INTERNAL_DATA_DIR
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -26,8 +27,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     DEFAULTS = {
         'dev': {
-            0: 'Camera',
-            1: 'ANDO Spectrometer',
+            0: 'Spectrometer',
+            1: 'Camera',
         },
         'btn_connect': {
             True: 'Disconnect',
@@ -44,7 +45,7 @@ class MainWindow(QtWidgets.QMainWindow):
     }
 
 
-    def __init__(self, frog=None, parent=None, test: bool=False):
+    def __init__(self, frog: FROG=None, parent=None, test: bool=False):
         super().__init__(parent)
 
         # The object which is connected to the window
@@ -143,7 +144,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Get dropdown position
         index = self.dropdown.currentIndex() # not used at the moment.
         # Do GUI actions
-        # self.dropdown.setEnabled(not checked) # only use once ANDO implemented
+        self.dropdown.setEnabled(not checked) # only use once ANDO implemented
         if index==0:
             self.btn_roi.setEnabled(checked)
         self.btn_connect.setText(btn[checked])
@@ -152,8 +153,11 @@ class MainWindow(QtWidgets.QMainWindow):
         # Open device and respective branch of parameter tree
         if checked:
             self.frog.initialize()
-            self.par.param(dev[index]).show()
+            device = dev[index]
+            self.par.param(device).show()
             self.par.param('Stage').show()
+            self.frog._get_settings
+            self.frog._config['spectral device'] = device
             self.update_timer.start()
         else:
             self.update_timer.stop()
@@ -193,17 +197,18 @@ class MainWindow(QtWidgets.QMainWindow):
         tsource_par = camera_par.child('Trigger').child('Source')
         tsource_par.sigValueChanged.connect(lambda _, val: self.frog.camera.set_trig_source(val))
 
-    # def tree_ando_actions(self):
-    #     """ Connect ando functionality. """
-    #     ando_par = self.par.param('ANDO Spectrometer')
-    #     ctr_par = ando_par.child('Center')
-    #     ctr_par.sigValueChanged.connect(lambda param, val: self.frog.ando.ctr(val))
-    #     span_par = ando_par.child('Span')
-    #     span_par.sigValueChanged.connect(lambda param, val: self.frog.ando.span(val))
-    #     cw_par = ando_par.child('CW mode')
-    #     cw_par.sigValueChanged.connect(lambda param, val: self.frog.ando.cw_mode(val))
-    #     holdtime_par = ando_par.child('Rep. time')
-    #     holdtime_par.sigValueChanged.connect(lambda param, val:self.frog.ando.peak_hold_mode(val))
+    #TODO
+    def tree_spectrometer_actions(self):
+        """ Connect ando functionality. """
+        ando_par = self.par.param('ANDO Spectrometer')
+        ctr_par = ando_par.child('Center')
+        ctr_par.sigValueChanged.connect(lambda param, val: self.frog.ando.ctr(val))
+        span_par = ando_par.child('Span')
+        span_par.sigValueChanged.connect(lambda param, val: self.frog.ando.span(val))
+        cw_par = ando_par.child('CW mode')
+        cw_par.sigValueChanged.connect(lambda param, val: self.frog.ando.cw_mode(val))
+        holdtime_par = ando_par.child('Rep. time')
+        holdtime_par.sigValueChanged.connect(lambda param, val:self.frog.ando.peak_hold_mode(val))
 
     def crop_action(self, param, changes):
         """Define what happens when changing the crop/roi parameters in the parameter tree"""

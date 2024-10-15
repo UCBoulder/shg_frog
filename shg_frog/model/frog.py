@@ -33,15 +33,16 @@ class FROG:
         """
         self.files = FileHandler()
         self._config = self.files.get_main_config()
-        stage_port = self._config['stage port']
+        # stage_port = self._config['stage port']
         # camera_id = self._config['camera id']
-        spectrometer_id = self._config['spectrometer id']
+        # spectrometer_id = self._config['spectrometer id']
         # Load the FROG devices (optional: virtual devices for testing)
         if test:
             # Instantiate dummies
             # self.stage = newport.SMC100Dummy(port=stage_port, dev_number=1)
             # self.camera = acquisition.CameraDummy(camera_id)
-            self.stage, self.spectrometer = connect_devices()
+            # self.stage, self.spectrometer = connect_devices()
+            pass
         else:
             pass
             # Instantiate the real stuff
@@ -79,12 +80,12 @@ class FROG:
         # Delete possible previous measurement data.
         self._data = None
         # Move stage to Start Position and wait for end of movement
-        self.stage.move_abs(meta['start position'])
+        self.stage.move_abs(meta['start position'] + meta['center position'])
         self.stage.wait_move_finish(1.)
         for i in range(meta['step number']):
             print("Loop...")
             # Move stage
-            self.stage.move_abs(meta['start position']+i*meta['step size'])
+            self.stage.move_abs(meta['start position'] + meta['center position'] + i*meta['step size'])
             self.stage.wait_move_finish(0.05)
             # Record spectrum
             # y_data = self.camera.get_spectrum()
@@ -120,20 +121,34 @@ class FROG:
         # Frequency step per pixel in THz
         ccddv = self.freq_step_per_pixel()
         # in future maybe write also exposure time, gain, max Intensity, bit depth
-        settings = {
-            'date': date,
-            'time': time,
-            'center position': self.parameters.get_center_position(),
-            'start position': self.parameters.get_start_position(),
-            'step number': self.parameters.get_step_num(),
-            # 'camera': self.camera.idn,
-            'spectrometer': self.spectrometer,
-            # 'bit depth': self.camera.pix_format,
-            'step size': step_size,
-            'ccddt': ccddt,
-            'ccddv': ccddv,
-            'comment': '', # is added afterwards
-        }
+        if self._config['spectral device'] == 'Camera':
+            settings = {
+                'date': date,
+                'time': time,
+                'center position': self.parameters.get_center_position(),
+                'start position': self.parameters.get_start_position(),
+                'step number': self.parameters.get_step_num(),
+                'camera': self.camera.idn,
+                'bit depth': self.camera.pix_format,
+                'step size': step_size,
+                'ccddt': ccddt,
+                'ccddv': ccddv,
+                'comment': '', # is added afterwards
+            }
+        elif self._config['spectral device'] == 'Spectrometer':
+            settings = {
+                'date': date,
+                'time': time,
+                'center position': self.parameters.get_center_position(),
+                'start position': self.parameters.get_start_position(),
+                'step number': self.parameters.get_step_num(),
+                'spectrometer': self.spectrometer.idn,
+                'step size': step_size,
+                'ccddt': ccddt,
+                'ccddv': ccddv,
+                'comment': '', # is added afterwards
+            }
+            
         return settings
 
     def scale_pxl_values(self, frog_array: np.ndarray) -> np.ndarray:
@@ -258,6 +273,12 @@ class FrogParams:
         xpos_par.setLimits([0, self._sensor_width-width_par.value()])
         ypos_par.setLimits([0, self._sensor_height-height_par.value()])
         crop_par.sigTreeStateChanged.connect(self.set_crop_limits)
+
+        ''' Settings for Spectrometers '''
+
+        spec_par = self.par.param('Spectrometer')
+        int_time_par = spec_par.child('Integration Time')
+        avgs_par = spec_par.child('Averages')
 
         ### Some settings regarding the Stage parameters ###
         stage_par = self.par.param('Stage')

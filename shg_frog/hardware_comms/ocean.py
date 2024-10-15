@@ -54,6 +54,10 @@ class OceanOpticsSpectrometer(Spectrometer):
     def integration_time_micros_limit(self):
         return self.spectrometer.integration_time_micros_limits
 
+    @property
+    def idn(self):
+        return self.spectrometer.serial_number
+
     def close(self):
         self.spectrometer.close()
 

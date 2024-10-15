@@ -43,9 +43,16 @@
   - name: Sampling
     type: int
     value: 201
-  name: ANDO Spectrometer
+  - name: Integration Time 
+    type: int
+    value: 10
+    suffix: ms 
+  - name: Averages
+    type: int
+    value: 1
+  name: Spectrometer
   type: group
-  visible: false
+  visible: false 
 - children:
   - compactHeight: false
     dec: true
