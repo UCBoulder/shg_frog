@@ -11,6 +11,7 @@ import pathlib
 import numpy as np
 
 from PyQt5 import QtWidgets, uic, QtCore, QtGui
+from PyQt5.QtWidgets import QAction
 from pyqtgraph.parametertree import ParameterTree
 import pyqtgraph as pg
 
@@ -81,6 +82,12 @@ class MainWindow(QtWidgets.QMainWindow):
         # Load measurement button
         self.btn_load.clicked.connect(self.load_action)
 
+        # Take spectrum button
+        self.btn_collect_spectrum.clicked.connect(self.start_spectrum_action)
+
+        # Take spectrum background button
+        self.btn_subtract_background.clicked.connect(self.spectrum_background_action)
+
         # Create Parametertree from FrogParams class
         self.par_class = self.frog.parameters
         self.par = self.par_class.par
@@ -109,6 +116,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Attribute for measurement thread
         self.measure_thread = None
+
+        # Attribute for spectrum thread
+        self.spectrum_thread = None
 
         # Attribute for phase retrieval window and thread
         self.retrieval_win = None
@@ -145,7 +155,7 @@ class MainWindow(QtWidgets.QMainWindow):
         index = self.dropdown.currentIndex() # not used at the moment.
         # Do GUI actions
         self.dropdown.setEnabled(not checked) # only use once ANDO implemented
-        if index==0:
+        if dev[index]=="Camera":
             self.btn_roi.setEnabled(checked)
         self.btn_connect.setText(btn[checked])
         self.btn_connect.setStyleSheet(f"background-color:{col[checked]}")
@@ -156,7 +166,6 @@ class MainWindow(QtWidgets.QMainWindow):
             device = dev[index]
             self.par.param(device).show()
             self.par.param('Stage').show()
-            self.frog._get_settings
             self.frog._config['spectral device'] = device
             self.update_timer.start()
         else:
@@ -183,7 +192,7 @@ class MainWindow(QtWidgets.QMainWindow):
         stage_par = self.par.param('Stage')
         # Stage Position
         go_par = stage_par.child('GoTo')
-        go_par.sigValueChanged.connect(lambda _, val: self.frog.stage.move_abs(val))
+        go_par.sigValueChanged.connect(lambda _, val: self.frog.stage.move_abs(val * 1e-6))
 
     def tree_camera_actions(self):
         """ Connect camera functionality. """
@@ -234,6 +243,34 @@ class MainWindow(QtWidgets.QMainWindow):
         self.par.sigTreeStateChanged.connect(\
             lambda param,changes: self.roi_win.update_ROI_frame(*self.par_class.get_crop_par()))
 
+    def start_spectrum_action(self):
+        ''' Retrievs the spectrum outside the context of a FROG measuremnt '''
+        self.spectrum_thread = general_worker.SpectrometerThread(self.frog.measure_spectrum)
+        self.spectrum_thread.sig_measure.connect(self.graphics_widget.update_graphics)
+        self.spectrum_thread.finished.connect(self.del_specthread)
+        self.spectrum_thread.start()
+
+        self.btn_collect_spectrum.setText("Stop Collection")
+        self.btn_collect_spectrum.clicked.disconnect()
+        self.btn_collect_spectrum.clicked.connect(self.stop_spectrum_action)
+    
+    def stop_spectrum_action(self):
+        ''' Stops spectrum retrieval '''
+        self.frog.stop_spectrum_measure = True
+        self.spectrum_thread.wait()
+        self.btn_collect_spectrum.setText("Collect Spectrum")
+        self.btn_collect_spectrum.clicked.disconnect()
+        self.btn_collect_spectrum.clicked.connect(self.start_spectrum_action)
+
+    def spectrum_background_action(self):
+        '''Takes background spectrum'''
+        measuring = self.spectrum_thread is not None
+        if measuring:
+            self.spectrum_thread.finished.connect(self.frog.measure_background)
+            self.spectrum_thread.finished.connect(self.start_spectrum_action)
+            self.frog.stop_spectrum_measure = True
+        else:
+            self.frog.measure_background()
 
     @QtCore.pyqtSlot(bool)
     def measure_action(self, checked):
@@ -265,6 +302,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def del_mthread(self):
         self.measure_thread = None
+    
+    def del_specthread(self):
+        self.spectrum_thread = None
 
     def uncheck_btn_measure(self):
         self.btn_measure.setChecked(False)
@@ -305,7 +345,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def update_values(self):
         """Used for values which are continuously updated using QTimer"""
         pos_par = self.par.param('Stage').child('Position')
-        pos_par.setValue(self.frog.stage.position)
+        pos_par.setValue(self.frog.stage.position * 1e6)
 
     def modify_progress(self, iter_val):
         """For changing the progress bar, using an iteration value"""
@@ -354,12 +394,13 @@ class FrogGraphics(pg.GraphicsLayoutWidget):
         pg.setConfigOptions(antialias=True)
 
         data_slice = self.addPlot(title='Single Slice')
-        data_slice.setLabel('bottom', "Frequency", units='AU')
+        
+        data_slice.setLabel('bottom', "Wavelength", units='m')
         data_slice.setLabel('left', "Intensity", units='AU')
         self.plot1 = data_slice.plot()
         vb_full = self.addPlot(title='FROG Trace')
         vb_full.setLabel('bottom',"Time Delay", units='AU')
-        vb_full.setLabel('left',"Frequency", units='AU')
+        vb_full.setLabel('left',"Wavelength", units='m')
         self.plot2 = pg.ImageItem()
         vb_full.addItem(self.plot2)
 
@@ -372,7 +413,7 @@ class FrogGraphics(pg.GraphicsLayoutWidget):
         if plot_num==3:
             self.plot1.setData(data)
         if plot_num==2:
-            data = np.flipud(data)
+            # data = np.flipud(data)
             self.plot2.setImage(data)
 
 

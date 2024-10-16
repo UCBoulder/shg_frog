@@ -18,6 +18,15 @@ class WorkThread(QtCore.QThread):
 
     def run(self):
         self.function(*self.args, **self.kwargs)
+        
+
+class SpectrometerThread(WorkThread):
+    ''' Thread used for using the spectrometer independently '''
+    sig_measure = pyqtSignal(int, np.ndarray)
+
+    def run(self):
+        self.function(self.sig_measure, \
+                      *self.args, **self.kwargs)
 
 class MeasureThread(WorkThread):
     """ Thread used for the measurement process. """

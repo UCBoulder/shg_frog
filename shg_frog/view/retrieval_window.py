@@ -126,7 +126,7 @@ class RetrievalGraphics(pg.GraphicsLayoutWidget):
         self.plot_reconstructed.setXLink(self.plot_original)
         self.plot_reconstructed.setYLink(self.plot_original)
 
-        y_label = '|E|^2 & ang(E)'
+        y_label = '$|E|^2 & \phi$'
         # Add item to show pulse in time domain
         self.nextRow()
         self.plot_time = self.addPlot(colspan=2)

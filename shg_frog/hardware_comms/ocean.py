@@ -12,10 +12,12 @@ class OceanOpticsSpectrometer(Spectrometer):
         return self.spectrometer.intensities()
 
     def wavelengths(self):
-        return self.spectrometer.wavelengths()
+        return self.spectrometer.wavelengths() * 1e-9
 
     def spectrum(self):
-        return self.spectrometer.spectrum()
+        spectrum = self.spectrometer.spectrum()
+        spectrum[0,:] = spectrum[0,:] *1e-9
+        return spectrum
 
     @property
     def integration_time_micros(self):

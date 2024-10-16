@@ -91,7 +91,7 @@ class LinearMotor(ABC):
 
 
     @abstractmethod
-    def move_by_um(self, value_um: float) -> None:
+    def move_by(self, value: float) -> None:
         '''
         Move the relative position of the stage (micron units).
 
@@ -111,7 +111,7 @@ class LinearMotor(ABC):
         raises: StageOutOfBoundException if the move would exceed
         the software limits of the stage.
         '''
-        self.move_by_um(T_fs_to_dist_um(value_fs))
+        self.move_by(T_fs_to_dist_um(value_fs))
 
     @abstractmethod
     def move_abs(self, value: float) -> None:
@@ -155,6 +155,7 @@ class LinearMotor(ABC):
         pass
 
     def wait_move_finish(self, interval):
+        '''override this if there is a built-in method'''
         while self.is_in_motion():
             sleep(interval)
 
@@ -220,9 +221,9 @@ class Spectrometer(ABC):
     @abstractmethod
     def wavelengths(self) -> np.ndarray[np.float64]:
         '''
-        Returns the wavelength bins (in nanometers).
+        Returns the wavelength bins (in meters).
         
-        returns: NDArray of floats enumarating the wavelength bins in nanometers
+        returns: NDArray of floats enumerating the wavelength bins in meters
         '''
         pass
 

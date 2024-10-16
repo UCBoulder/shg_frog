@@ -53,6 +53,7 @@ class FROG:
         # Will contain the measurement data and settings
         self._data = None
         self.stop_measure = False
+        self.background = 0
 
         self.algo = phase_retrieval.PhaseRetrieval()
         self.parameters = FrogParams(self._config['pxls width'], self._config['pxls height'])
@@ -70,10 +71,26 @@ class FROG:
         self.spectrometer.close()
         # self.camera.close()
         print("Devices disconnected!")
+    
+    def measure_background(self):
+        self.background = self.spectrometer.intensities()
+        
 
+    def measure_spectrum(self, sig_measure):
+        '''Carries out the continuous spectrum collection'''
+        self.stop_spectrum_measure = False
+        while not self.stop_spectrum_measure:
+            if self.stop_spectrum_measure:
+                return
+            spectrum = self.spectrometer.spectrum()
+            spectrum[1,:] = spectrum[1,:] -self.background
+            sig_measure.emit(3, spectrum.transpose())
+
+
+            
 
     def measure(self, sig_progress, sig_measure):
-        """Carries out the measurement loop."""
+        """Carries out the frog measurement loop."""
         self.stop_measure = False
         # Get measurement settings
         meta = self._get_settings()
@@ -81,22 +98,27 @@ class FROG:
         self._data = None
         # Move stage to Start Position and wait for end of movement
         self.stage.move_abs(meta['start position'] + meta['center position'])
-        self.stage.wait_move_finish(1.)
+        wavelengths = self.spectrometer
+        self.stage.wait_move_finish(.05)
         for i in range(meta['step number']):
-            print("Loop...")
+            print(f"Loop {i}...")
             # Move stage
-            self.stage.move_abs(meta['start position'] + meta['center position'] + i*meta['step size'])
-            self.stage.wait_move_finish(0.05)
+            # self.stage.move_by(step_size)
+            self.stage.move_abs(meta['start position'] + meta['center position'] + i * meta['step size'])
+            '''may be necessary depending on stage logic'''
+            self.stage.wait_move_finish(0.01)
             # Record spectrum
             # y_data = self.camera.get_spectrum()
-            y_data = self.spectrometer.intensities()
+            spectrum = self.spectrometer.spectrum()
+            spectrum[1,:] = spectrum[1,:] -self.background
+            intensities = spectrum[1,:]
             # Create 2d frog-array to fill with data
             if i==0:
-                frog_array = np.zeros((len(y_data), meta['step number']))
+                frog_array = np.zeros((len(intensities), meta['step number']))
             # Stitch data together
-            frog_array[:,i] = y_data
+            frog_array[:,i] = intensities
             # Send data to plot
-            sig_measure.emit(3, y_data)
+            sig_measure.emit(3, spectrum.transpose())
             sig_measure.emit(2, frog_array)
             sig_progress.emit(i+1)
             if self.stop_measure:
@@ -104,7 +126,10 @@ class FROG:
                 return
         # Save Frog trace and measurement settings as instance attributes,
         # they are then available for save button of GUI.
-        frog_trace = self.scale_pxl_values(frog_array)
+        if self._config['spectral device'] == 'Camera':
+            frog_trace = self.scale_pxl_values(frog_array)
+        elif self._config['spectral device'] == 'Spectrometer':
+            frog_trace = self.scale_wl_to_freq(frog_array)
         # maybe add possibility to add a comment to the meta data at
         # end of measurement.
         self._data = Data(frog_trace, meta)
@@ -399,17 +424,17 @@ class FrogParams:
     def get_algorithm_type(self) -> str:
         return self.par.param('Phase Retrieval').child('Algorithm').value()
 
-    def get_sensor_size(self) -> list():
+    def get_sensor_size(self) -> list:
         return self._sensor_width, self._sensor_height
 
     def get_start_position(self) -> float:
-        return self.par.param('Stage').child('Start Position').value()
+        return self.par.param('Stage').child('Start Position').value() * 1e-6
 
     def get_step_num(self) -> int:
         return self.par.param('Stage').child('Number of steps').value()
 
     def get_step_size(self) -> float:
-        return self.par.param('Stage').child('Step Size').value()
+        return self.par.param('Stage').child('Step Size').value() * 1e-6
 
     def get_center_position(self) -> float:
-        return self.par.param('Stage').child('Offset').value()
+        return self.par.param('Stage').child('Offset').value() * 1e-6
