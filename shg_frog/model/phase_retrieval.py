@@ -38,6 +38,7 @@ Author: Julian Krauth
 Date created: 2019/11/27
 """
 import numpy as np
+import matplotlib.pyplot as plt
 
 from ..helpers.file_handler import FileHandler
 
@@ -316,7 +317,6 @@ class PhaseRetrieval:
         rowsums = np.sum(ccdimg,1)
         centerrow = np.inner(np.arange(1,ccdsizev+1),rowsums) / np.sum(rowsums)
 
-
         # Find the (very) approximate width of the spot in each dimension
         spotwidth = (2*np.inner(np.abs(np.arange(1,ccdsizet+1)-centercol),colsums)
                      / np.sum(colsums))
@@ -346,7 +346,6 @@ class PhaseRetrieval:
         print('Horizontal pixels per delay (t) sample: %.3f' % tpxpersample)
 
         # For me these are around 5 pixels.
-
 
         ################# IMAGE FILTERING #################
         if showprogress:
@@ -820,7 +819,7 @@ class PhaseRetrieval:
         print_finished_message()
 
         intensity = get_norm_intensity(Pt.reshape(N,))
-        print(f'Pulse width: {get_fwhm(intensity, tpxls):.3f} ps.')
+        print(f'Pulse width: {get_fwhm(intensity, tpxls):.3e} s.')
 
         return Pt, G, Fr
 
@@ -955,7 +954,7 @@ class PhaseRetrieval:
         print_finished_message()
 
         intensity = get_norm_intensity(Obj.reshape(N,))
-        print(f'Pulse width: {get_fwhm(intensity, D):.3f} ps.')
+        print(f'Pulse width: {get_fwhm(intensity, D):.3e} s.')
 
         return Obj, error, Ir
 

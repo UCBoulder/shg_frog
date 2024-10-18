@@ -30,16 +30,12 @@
 - children:
   - name: Center
     type: float
-    value: 390.0
+    value: 775 
+    suffix: nm
   - name: Span
     type: float
     value: 20.0
-  - name: CW mode
-    type: bool
-    value: true
-  - name: Rep. time
-    type: float
-    value: 36
+    suffix: nm
   - name: Sampling
     type: int
     value: 201

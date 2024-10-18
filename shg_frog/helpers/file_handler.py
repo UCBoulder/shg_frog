@@ -28,7 +28,7 @@ DEFAULT_CONFIG = {
     "pixel size": 5.86, # Given in micron
     "pxls height": 1216, # Number of pixels in vertical
     "pxls width": 1936, # Number of pixels in horizontal
-    "center wavelength": 345, # in nm, center wavelength of the pulse
+    "center wavelength": 775, # in nm, center wavelength of the pulse
     "focal length": 200, # in mm, lens between grating and camera
     "grating": 0.81, # Grating specified with 0.81nm/mrad
 }

@@ -102,7 +102,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tree_retrieval_actions()
         self.tree_stage_actions()
         self.tree_camera_actions()
-        #  self.tree_ando_actions()
+        self.tree_spectrometer_actions()
 
         # Interpret image data as row-major instead of col-major
         pg.setConfigOptions(imageAxisOrder='row-major')
@@ -211,15 +211,13 @@ class MainWindow(QtWidgets.QMainWindow):
     #TODO
     def tree_spectrometer_actions(self):
         """ Connect ando functionality. """
-        ando_par = self.par.param('ANDO Spectrometer')
-        ctr_par = ando_par.child('Center')
-        ctr_par.sigValueChanged.connect(lambda param, val: self.frog.ando.ctr(val))
-        span_par = ando_par.child('Span')
-        span_par.sigValueChanged.connect(lambda param, val: self.frog.ando.span(val))
-        cw_par = ando_par.child('CW mode')
-        cw_par.sigValueChanged.connect(lambda param, val: self.frog.ando.cw_mode(val))
-        holdtime_par = ando_par.child('Rep. time')
-        holdtime_par.sigValueChanged.connect(lambda param, val:self.frog.ando.peak_hold_mode(val))
+        spectrometer_par = self.par.param('Spectrometer')
+        ctr_par = spectrometer_par.child('Center')
+        ctr_par.sigValueChanged.connect(lambda param, val: self.frog.set_center(val * 1e-9))
+        self.frog.set_center(ctr_par.value() * 1e-9)
+        span_par = spectrometer_par.child('Span')
+        span_par.sigValueChanged.connect(lambda param, val: self.frog.set_span(val * 1e-9))
+        self.frog.set_span(span_par.value() * 1e-9)
 
     def crop_action(self, param, changes):
         """Define what happens when changing the crop/roi parameters in the parameter tree"""
@@ -306,6 +304,8 @@ class MainWindow(QtWidgets.QMainWindow):
     
     def update_frog_axes(self):
         wavelengths = self.frog.spectrometer.wavelengths() 
+        wlrange = np.where((wavelengths >= self.frog.center -self.frog.span/2) & (wavelengths<= self.frog.center + self.frog.span/2))
+        wavelengths=wavelengths[wlrange]
         meta = self.frog._get_settings()
         start_pos = meta['start position'] 
         start_time = 2*start_pos/C_MKS
@@ -416,10 +416,9 @@ class FrogGraphics(pg.GraphicsLayoutWidget):
         vb_full.setLabel('left',"Wavelength", units='m')
         self.spectrogram_plot = pg.ImageItem()
         vb_full.addItem(self.spectrogram_plot)
-        # cm = pg.colormap.getFromMatplotlib("rainbow")
-        # lut = cm.getLookupTable(nPts=256)
-        # self.spectrogram_plot.setLookupTable(lut)
-        # self.spectrogram_plot.setLevels(None)
+        cm = pg.colormap.getFromMatplotlib("rainbow")
+        lut = cm.getLookupTable(nPts=512)
+        self.spectrogram_plot.setLookupTable(lut)
 
 
     def update_graphics(self, plot_num: int, data):

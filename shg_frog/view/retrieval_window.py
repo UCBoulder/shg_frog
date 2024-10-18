@@ -8,6 +8,7 @@ Python Version: 3.7
 """
 import sys
 import pathlib
+from PyQt5.QtGui import QTransform
 from PyQt5.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -126,7 +127,7 @@ class RetrievalGraphics(pg.GraphicsLayoutWidget):
         self.plot_reconstructed.setXLink(self.plot_original)
         self.plot_reconstructed.setYLink(self.plot_original)
 
-        y_label = '$|E|^2 & \phi$'
+        y_label = r'$|E|^2 & \phi$'
         # Add item to show pulse in time domain
         self.nextRow()
         self.plot_time = self.addPlot(colspan=2)
@@ -168,10 +169,15 @@ class RetrievalGraphics(pg.GraphicsLayoutWidget):
         self.tpxls = tpxls
         self.vpxls = vpxls
         # Set correct scalings for axis of FROG traces
-        self.img_original.scale(tpxls[1]-tpxls[0], vpxls[1]-vpxls[0])
-        self.img_reconstructed.scale(tpxls[1]-tpxls[0], vpxls[1]-vpxls[0])
-        self.img_original.translate(-N/2,-N/2) # center axes
-        self.img_reconstructed.translate(-N/2,-N/2) # center axes
+        tr = QTransform()
+        tr.scale(tpxls[1]-tpxls[0], vpxls[1]-vpxls[0])
+        tr.translate(-N/2,N/2)
+        # self.img_original.scale(tpxls[1]-tpxls[0], vpxls[1]-vpxls[0])
+        # self.img_reconstructed.scale(tpxls[1]-tpxls[0], vpxls[1]-vpxls[0])
+        # self.img_original.translate(-N/2,-N/2) # center axes
+        # self.img_reconstructed.translate(-N/2,-N/2) # center axes
+        self.img_original.setTransform(tr)
+        self.img_reconstructed.setTransform(tr)
         # Create initial graphs for showing the retrieved pulse
         self.func_ampl_time = self.plot_time.plot(
             tpxls, np.zeros(N), pen=AMPLITUDE_COLOR, name=AMPLITUDE_LABEL)

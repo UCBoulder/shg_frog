@@ -42,20 +42,16 @@ class FROG:
             # self.stage, self.spectrometer = connect_devices()
             pass
         else:
+            # self.stage, self.spectrometer = connect_devices()
             pass
-            # Instantiate the real stuff
-            # self.stage = newport.SMC100(port=stage_port, dev_number=1)
-            # self.camera = acquisition.Camera(camera_id)
-            #self.ando = acquisition.Spectrometer(ip_addr='10.0.0.40', gpib=1)
 
         # Will contain the measurement data and settings
         self._data = None
         self.stop_measure = False
         self.background = 0
 
-        self.algo = phase_retrieval.PhaseRetrieval()
+        self.algo = phase_retrieval.PhaseRetrieval(prep_size=64)
         self.parameters = FrogParams(self._config['pxls width'], self._config['pxls height'])
-
     def initialize(self) -> None:
         """Connect to the devices."""
         # self.stage.initialize()
@@ -85,8 +81,6 @@ class FROG:
             sig_measure.emit(3, spectrum.transpose())
 
 
-            
-
     def measure(self, sig_progress, sig_measure):
         """Carries out the frog measurement loop."""
         self.stop_measure = False
@@ -96,6 +90,10 @@ class FROG:
         self._data = None
         # Move stage to Start Position and wait for end of movement
         self.stage.move_abs(meta['start position'] + meta['center position'])
+        wavelengths = self.spectrometer.wavelengths()
+        # find the extent of the span
+        wlrange = np.where((wavelengths >= self.center -self.span/2) & (wavelengths<= self.center + self.span/2))
+        wavelengths = wavelengths[wlrange]
         self.stage.wait_move_finish(.05)
         for i in range(meta['step number']):
             print(f"Loop {i}...")
@@ -103,16 +101,16 @@ class FROG:
             # TODO make a fast scanning variant that uses move by
             # self.stage.move_by(step_size)
             self.stage.move_abs(meta['start position'] + meta['center position'] + i * meta['step size'])
-            '''may be necessary depending on stage logic'''
             self.stage.wait_move_finish(.05)
+
             # Record spectrum
             # y_data = self.camera.get_spectrum()
             spectrum = self.spectrometer.spectrum()
             spectrum[1,:] = spectrum[1,:] -self.background
-            intensities = spectrum[1,:]
+            intensities = spectrum[1, wlrange]
             # Create 2d frog-array to fill with data
             if i==0:
-                frog_array = np.zeros((len(intensities), meta['step number']))
+                frog_array = np.zeros((len(intensities[0]), meta['step number']))
             # Stitch data together
             frog_array[:,i] = intensities
             # Send data to plot
@@ -127,8 +125,7 @@ class FROG:
         if self._config['spectral device'] == 'Camera':
             frog_trace = self.scale_pxl_values(frog_array)
         elif self._config['spectral device'] == 'Spectrometer':
-            # TODO
-            frog_trace = self.scale_wl_to_freq(self.spectrometer.wavelengths(), frog_array)
+            frog_trace = self.scale_wl_to_freq(wavelengths, frog_array)
         # maybe add possibility to add a comment to the meta data at
         # end of measurement.
         self._data = Data(frog_trace, meta)
@@ -137,10 +134,19 @@ class FROG:
     def scale_wl_to_freq(self, wavelengths: np.ndarray, frog_array: np.ndarray):
         '''scales the trace with the lambda^2 Jacobian to correct intensities
         for converting from wavelength to a frequency axis'''
-        for i in range(frog_array.shape[1]):
-            frog_array[:, i] = frog_array[:,i] / wavelengths**2
-        return np.flipud(frog_array)
+        frog_array_copy = np.copy(frog_array)
+        for i in range(frog_array_copy.shape[1]):
+            wl_x = wavelengths
+            old_y = frog_array_copy[:, i]
+            f_x_lin = np.flip(np.linspace(C_MKS/np.min(wl_x), C_MKS/np.max(wl_x), len(wl_x)))
+            f_x_hyp = np.flip(C_MKS/wl_x)
+            old_y_flipped = np.flip(old_y)
+            new_y = np.interp(f_x_lin, f_x_hyp, old_y_flipped)
+            new_y = new_y / np.power(f_x_lin, 2)
+            frog_array_copy[:,i] = new_y 
+        return frog_array_copy 
         
+    
 
     def _get_settings(self) -> dict:
         """Returns the settings for the current measurement as dictionary.
@@ -175,10 +181,20 @@ class FROG:
             settings.update({
                 'spectrometer': self.spectrometer.idn,
                 'ccddv': ccddv,
+                'span': self.span,
+                'center': self.center 
             })
             
         return settings
 
+    def set_span(self, value):
+        '''Slot for updating spectrometer span'''
+        self.span = value
+
+    def set_center(self, value):
+        '''Slot for updating spectrometer center wl'''
+        self.center = value
+    
     def scale_pxl_values(self, frog_array: np.ndarray) -> np.ndarray:
         """Scale Mono12 image to 16bit, else don't do anything."""
         # Scale image according to bit depth
@@ -231,7 +247,7 @@ class FROG:
             data = self._data.image
             # prepare FROG image
             self.algo.prepFROG(ccddt=ccddt, ccddv=ccddv, \
-                ccdimg=data, flip=2)
+                ccdimg=data, flip=0)
             # Retrieve phase, algorithm is chosen in GUI
             if self.parameters.get_algorithm_type() == 'GP':
                 self.algo.retrievePhase(
