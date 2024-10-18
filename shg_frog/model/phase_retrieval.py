@@ -187,7 +187,7 @@ class PhaseRetrieval:
 
         # Cell-array: units[0] is units of dtperpx, units[1] is units[0]^-1,
         # the units of frequency.
-        self.units = ['ps','THz']
+        self.units = ['s','Hz']
 
         ### FROG traces ###
         # Preparated trace, created by self.setPrepFrogTrace()

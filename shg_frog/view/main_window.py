@@ -12,8 +12,10 @@ import numpy as np
 
 from PyQt5 import QtWidgets, uic, QtCore, QtGui
 from PyQt5.QtWidgets import QAction
+from PyQt5.QtGui import QTransform
 from pyqtgraph.parametertree import ParameterTree
 import pyqtgraph as pg
+from scipy.constants import c as C_MKS
 
 from . import general_worker
 from .roi_window import ROIGraphics
@@ -297,8 +299,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.measure_thread.sig_progress.connect(self.modify_progress)
         # Connect plot update with measure signal
         self.measure_thread.sig_measure.connect(self.graphics_widget.update_graphics)
+        #TODO do the scale update here
+        self.update_frog_axes()
         # Run measurement
         self.measure_thread.start()
+    
+    def update_frog_axes(self):
+        wavelengths = self.frog.spectrometer.wavelengths() 
+        meta = self.frog._get_settings()
+        start_pos = meta['start position'] 
+        start_time = 2*start_pos/C_MKS
+        self.graphics_widget.update_frog_axes([start_time, -start_time],[np.min(wavelengths),np.max(wavelengths)], meta['step number'], len(wavelengths))
+    
 
     def del_mthread(self):
         self.measure_thread = None
@@ -397,12 +409,17 @@ class FrogGraphics(pg.GraphicsLayoutWidget):
         
         data_slice.setLabel('bottom', "Wavelength", units='m')
         data_slice.setLabel('left', "Intensity", units='AU')
-        self.plot1 = data_slice.plot()
+        self.spectrum_plot = data_slice.plot()
+
         vb_full = self.addPlot(title='FROG Trace')
-        vb_full.setLabel('bottom',"Time Delay", units='AU')
+        vb_full.setLabel('bottom',"Time Delay", units='s')
         vb_full.setLabel('left',"Wavelength", units='m')
-        self.plot2 = pg.ImageItem()
-        vb_full.addItem(self.plot2)
+        self.spectrogram_plot = pg.ImageItem()
+        vb_full.addItem(self.spectrogram_plot)
+        cm = pg.colormap.getFromMatplotlib("rainbow")
+        lut = cm.getLookupTable(nPts=256)
+        self.spectrogram_plot.setLookupTable(lut)
+
 
     def update_graphics(self, plot_num: int, data):
         """ Update single Slice and FROG trace plots in main window
@@ -411,12 +428,17 @@ class FrogGraphics(pg.GraphicsLayoutWidget):
         plot_num -- 2: FROG plot
         """
         if plot_num==3:
-            self.plot1.setData(data)
+            self.spectrum_plot.setData(data)
         if plot_num==2:
             # data = np.flipud(data)
-            self.plot2.setImage(data)
+            self.spectrogram_plot.setImage(data)
 
 
+    def update_frog_axes(self, time_limits: list[float,float], wavelength_limits: list[float,float], time_bins: int, wavelength_bins: int):
+        tr = QTransform()
+        tr.translate(time_limits[0], wavelength_limits[0])
+        tr.scale(np.diff(time_limits)/time_bins, np.diff(wavelength_limits)/wavelength_bins)
+        self.spectrogram_plot.setTransform(tr)
 
 class CommentDialog(QtWidgets.QDialog):
     """ For adding a comment when saving the measurement. """

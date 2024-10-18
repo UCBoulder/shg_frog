@@ -34,7 +34,7 @@ class MeasureThread(WorkThread):
     sig_progress = pyqtSignal(int)
     # Signal for plotting data in GUI
     sig_measure = pyqtSignal(int, np.ndarray)
-
+    # Signal for scaling spectrogram in GUI
     def run(self):
         self.function(self.sig_progress, self.sig_measure, \
                       *self.args, **self.kwargs)

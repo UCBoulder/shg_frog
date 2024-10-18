@@ -10,8 +10,6 @@ import pathlib
 from datetime import datetime
 import numpy as np
 from pyqtgraph.parametertree import Parameter
-from labdevices import newport
-
 from . import acquisition
 from . import phase_retrieval
 from ..helpers.file_handler import FileHandler
@@ -19,7 +17,7 @@ from ..helpers.data_types import Data
 from ..hardware_comms.device_interfaces import LinearMotor, Spectrometer
 from ..hardware_comms.connect_devices import connect_devices
 
-SPEEDOFLIGHT = 299792458. #m/s
+C_MKS = 299792458. #m/s
 
 
 
@@ -98,11 +96,11 @@ class FROG:
         self._data = None
         # Move stage to Start Position and wait for end of movement
         self.stage.move_abs(meta['start position'] + meta['center position'])
-        wavelengths = self.spectrometer
         self.stage.wait_move_finish(.05)
         for i in range(meta['step number']):
             print(f"Loop {i}...")
             # Move stage
+            # TODO make a fast scanning variant that uses move by
             # self.stage.move_by(step_size)
             self.stage.move_abs(meta['start position'] + meta['center position'] + i * meta['step size'])
             '''may be necessary depending on stage logic'''
@@ -129,11 +127,20 @@ class FROG:
         if self._config['spectral device'] == 'Camera':
             frog_trace = self.scale_pxl_values(frog_array)
         elif self._config['spectral device'] == 'Spectrometer':
-            frog_trace = self.scale_wl_to_freq(frog_array)
+            # TODO
+            frog_trace = self.scale_wl_to_freq(self.spectrometer.wavelengths(), frog_array)
         # maybe add possibility to add a comment to the meta data at
         # end of measurement.
         self._data = Data(frog_trace, meta)
         print("Measurement finished!")
+
+    def scale_wl_to_freq(self, wavelengths: np.ndarray, frog_array: np.ndarray):
+        '''scales the trace with the lambda^2 Jacobian to correct intensities
+        for converting from wavelength to a frequency axis'''
+        for i in range(frog_array.shape[1]):
+            frog_array[:, i] = frog_array[:,i] / wavelengths**2
+        return np.flipud(frog_array)
+        
 
     def _get_settings(self) -> dict:
         """Returns the settings for the current measurement as dictionary.
@@ -142,37 +149,33 @@ class FROG:
         time = datetime.now().strftime('%H:%M:%S')
         step_size = self.parameters.get_step_size()
         # Time step per pixel in ps
-        ccddt = 1e6*2*step_size/(SPEEDOFLIGHT)
+        ccddt = 2*step_size/(C_MKS)
         # Frequency step per pixel in THz
-        ccddv = self.freq_step_per_pixel()
+        # TODO 
+        ccddv = self.freq_bin_size()
         # in future maybe write also exposure time, gain, max Intensity, bit depth
+        settings = {
+            'date': date,
+            'time': time,
+            'center position': self.parameters.get_center_position(),
+            'start position': self.parameters.get_start_position(),
+            'step number': self.parameters.get_step_num(),
+            'step size': step_size,
+            'ccddt': ccddt,
+            'ccddv': ccddv,
+            'comment': '', # is added afterwards
+        }
         if self._config['spectral device'] == 'Camera':
-            settings = {
-                'date': date,
-                'time': time,
-                'center position': self.parameters.get_center_position(),
-                'start position': self.parameters.get_start_position(),
-                'step number': self.parameters.get_step_num(),
+            settings.update({
                 'camera': self.camera.idn,
                 'bit depth': self.camera.pix_format,
-                'step size': step_size,
-                'ccddt': ccddt,
-                'ccddv': ccddv,
-                'comment': '', # is added afterwards
-            }
+            })
+            ccddv = self.freq_bin_size()
         elif self._config['spectral device'] == 'Spectrometer':
-            settings = {
-                'date': date,
-                'time': time,
-                'center position': self.parameters.get_center_position(),
-                'start position': self.parameters.get_start_position(),
-                'step number': self.parameters.get_step_num(),
+            settings.update({
                 'spectrometer': self.spectrometer.idn,
-                'step size': step_size,
-                'ccddt': ccddt,
-                'ccddv': ccddv,
-                'comment': '', # is added afterwards
-            }
+            })
+            ccddv = self.freq_step_per_pixel()
             
         return settings
 
@@ -205,12 +208,19 @@ class FROG:
             /1000) # yields 34
         nm_per_px = self._config['grating']/pxls_per_mrad # yields 0.0237nm
         # Frequency step per pixel
-        freq_per_px_GHz = SPEEDOFLIGHT * (1/(wl_at_center) \
+        freq_per_px_GHz = C_MKS * (1/(wl_at_center) \
             -1/(wl_at_center + nm_per_px)) # GHz
         freq_per_px = freq_per_px_GHz * 1.e-3 # THz
         # Also here I assume that for small angles the frequency can be
         # considered to be linear on the CCD plane.
         return freq_per_px
+    
+    def freq_bin_size(self) -> float:
+        '''Gives the size of the spectrometer's frequency bins in Hz.
+        Assumes that the FROG trace will be interpolated onto a 
+        linear frequency grid.'''
+        wavelengths = self.spectrometer.wavelengths()
+        return C_MKS * (1/np.min(wavelengths) - 1/np.max(wavelengths))/(len(wavelengths)-1)
 
     def retrieve_phase(self, sig_retdata, sig_retlabels, sig_rettitles, sig_retaxis):
         """Execute phase retrieval algorithm."""
