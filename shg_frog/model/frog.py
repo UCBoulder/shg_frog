@@ -152,7 +152,6 @@ class FROG:
         ccddt = 2*step_size/(C_MKS)
         # Frequency step per pixel in THz
         # TODO 
-        ccddv = self.freq_bin_size()
         # in future maybe write also exposure time, gain, max Intensity, bit depth
         settings = {
             'date': date,
@@ -162,20 +161,21 @@ class FROG:
             'step number': self.parameters.get_step_num(),
             'step size': step_size,
             'ccddt': ccddt,
-            'ccddv': ccddv,
             'comment': '', # is added afterwards
         }
         if self._config['spectral device'] == 'Camera':
+            ccddv = self.freq_step_per_pixel()
             settings.update({
                 'camera': self.camera.idn,
                 'bit depth': self.camera.pix_format,
+                'ccddv': ccddv,
             })
-            ccddv = self.freq_bin_size()
         elif self._config['spectral device'] == 'Spectrometer':
+            ccddv = self.freq_bin_size()
             settings.update({
                 'spectrometer': self.spectrometer.idn,
+                'ccddv': ccddv,
             })
-            ccddv = self.freq_step_per_pixel()
             
         return settings
 
