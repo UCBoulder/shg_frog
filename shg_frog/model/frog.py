@@ -104,7 +104,7 @@ class FROG:
             # self.stage.move_by(step_size)
             self.stage.move_abs(meta['start position'] + meta['center position'] + i * meta['step size'])
             '''may be necessary depending on stage logic'''
-            self.stage.wait_move_finish(0.01)
+            self.stage.wait_move_finish(.05)
             # Record spectrum
             # y_data = self.camera.get_spectrum()
             spectrum = self.spectrometer.spectrum()

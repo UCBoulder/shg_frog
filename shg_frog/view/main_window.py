@@ -416,9 +416,10 @@ class FrogGraphics(pg.GraphicsLayoutWidget):
         vb_full.setLabel('left',"Wavelength", units='m')
         self.spectrogram_plot = pg.ImageItem()
         vb_full.addItem(self.spectrogram_plot)
-        cm = pg.colormap.getFromMatplotlib("rainbow")
-        lut = cm.getLookupTable(nPts=256)
-        self.spectrogram_plot.setLookupTable(lut)
+        # cm = pg.colormap.getFromMatplotlib("rainbow")
+        # lut = cm.getLookupTable(nPts=256)
+        # self.spectrogram_plot.setLookupTable(lut)
+        # self.spectrogram_plot.setLevels(None)
 
 
     def update_graphics(self, plot_num: int, data):
