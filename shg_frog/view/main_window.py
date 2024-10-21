@@ -134,6 +134,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Load test trace at start up
         self.load_test_trace()
 
+    def closeEvent(self, event):
+        self.save_and_close_action()
+
     def print_changes(self, val: bool):
         """ Control whether parameter changes are printed. """
         self.par_class.print_par_changes(val)
@@ -162,6 +165,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.btn_connect.setText(btn[checked])
         self.btn_connect.setStyleSheet(f"background-color:{col[checked]}")
         self.btn_measure.setEnabled(checked)
+        self.btn_collect_spectrum.setEnabled(checked)
+        self.btn_subtract_background.setEnabled(checked)
         # Open device and respective branch of parameter tree
         if checked:
             self.frog.initialize()
@@ -257,7 +262,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def stop_spectrum_action(self):
         ''' Stops spectrum retrieval '''
         self.frog.stop_spectrum_measure = True
-        self.spectrum_thread.wait()
         self.btn_collect_spectrum.setText("Collect Spectrum")
         self.btn_collect_spectrum.clicked.disconnect()
         self.btn_collect_spectrum.clicked.connect(self.start_spectrum_action)
@@ -278,6 +282,8 @@ class MainWindow(QtWidgets.QMainWindow):
         btn = self.DEFAULTS['btn_measure']
         self.btn_measure.setText(btn[checked])
         if checked:
+            # Stop the spectrum collection thread
+            self.stop_spectrum_action()
             self.progress.setValue(0)
             # Do actual measurement loop (in separate thread)
             self.start_measure()

@@ -95,6 +95,9 @@
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="1">
          <widget class="QPushButton" name="btn_collect_spectrum">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="maximumSize">
            <size>
             <width>200</width>
@@ -157,6 +160,9 @@
         </item>
         <item row="0" column="2">
          <widget class="QPushButton" name="btn_subtract_background">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="maximumSize">
            <size>
             <width>200</width>

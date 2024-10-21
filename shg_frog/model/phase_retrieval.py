@@ -952,7 +952,6 @@ class PhaseRetrieval:
         self.Fr = Ir
         self.Pt = Obj
         print_finished_message()
-
         intensity = get_norm_intensity(Obj.reshape(N,))
         print(f'Pulse width: {get_fwhm(intensity, D):.3e} s.')
 

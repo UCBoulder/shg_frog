@@ -50,6 +50,7 @@ class FROG:
         self.stop_measure = False
         self.background = 0
 
+        # TODO be able to change sampling size
         self.algo = phase_retrieval.PhaseRetrieval(prep_size=64)
         self.parameters = FrogParams(self._config['pxls width'], self._config['pxls height'])
     def initialize(self) -> None:
@@ -144,7 +145,7 @@ class FROG:
             new_y = np.interp(f_x_lin, f_x_hyp, old_y_flipped)
             new_y = new_y / np.power(f_x_lin, 2)
             frog_array_copy[:,i] = new_y 
-        return frog_array_copy 
+        return np.fliplr(frog_array_copy)
         
     
 
@@ -307,7 +308,6 @@ class FrogParams:
         self.par = Parameter.create(
             name='params',
             type='group',
-            # children=params,
             children=FileHandler().load_parameters(),
             )
 

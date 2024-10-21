@@ -5,17 +5,17 @@
     value: 128
   - name: Algorithm
     type: list
-    value: GP
-    values:
+    limits:
       GP: GP
       Ptychographic: PT
+    value: GP
   - name: Seed
     type: list
-    value: autocorr
-    values:
+    limits:
       Autocorr: autocorr
       Custom: custom
       Gauss: gauss
+    value: autocorr
   - compactHeight: false
     name: Max. Iterations
     type: int
@@ -98,14 +98,14 @@
     - name: Mode
       type: list
       value: 1
-      values:
+      limits:
         'Off': 0
         'On': 1
       visible: false
     - name: Source
       type: list
       value: External
-      values:
+      limits:
         External: Line1
         Freerun: Freerun
       visible: true
@@ -114,7 +114,7 @@
   - name: PixelFormat
     type: list
     value: Mono8
-    values:
+    limits:
       Mono12: Mono12
       Mono8: Mono8
   name: Camera

@@ -113,16 +113,16 @@ class RetrievalGraphics(pg.GraphicsLayoutWidget):
         self.plot_original = self.addPlot(title='Orig. FROG trace')
         self.img_original = pg.ImageItem()
         self.plot_original.addItem(self.img_original)
-        self.plot_original.setLabel('bottom', 'Delay')
-        self.plot_original.setLabel('left', 'SH freq')
+        self.plot_original.setLabel('bottom', 'Delay', units='s')
+        self.plot_original.setLabel('left', 'SH freq', units='Hz')
 
         # Add item to show retrieved trace
          # title is updated dynamically later
         self.plot_reconstructed = self.addPlot(title='Reconstructed')
         self.img_reconstructed = pg.ImageItem()
         self.plot_reconstructed.addItem(self.img_reconstructed)
-        self.plot_reconstructed.setLabel('bottom', 'Delay')
-        self.plot_reconstructed.setLabel('left', 'SH freq')
+        self.plot_reconstructed.setLabel('bottom', 'Delay', units='s')
+        self.plot_reconstructed.setLabel('left', 'SH freq', units='Hz')
         # Link scale/shift between plots plot_original and plot_reconstructed
         self.plot_reconstructed.setXLink(self.plot_original)
         self.plot_reconstructed.setYLink(self.plot_original)
@@ -131,16 +131,16 @@ class RetrievalGraphics(pg.GraphicsLayoutWidget):
         # Add item to show pulse in time domain
         self.nextRow()
         self.plot_time = self.addPlot(colspan=2)
-        self.plot_time.setLabel('left', y_label)
+        self.plot_time.setLabel('left', y_label, units='AU')
         self.plot_time.addLegend()
-        self.plot_time.setLabel('bottom', 'Time')
+        self.plot_time.setLabel('bottom', 'Time', units='s')
 
         # Add item to show pulse in frequency domain
         self.nextRow()
         self.plot_freq = self.addPlot(colspan=2)
-        self.plot_freq.setLabel('left', y_label)
+        self.plot_freq.setLabel('left', y_label, units='AU')
         self.plot_freq.addLegend()
-        self.plot_freq.setLabel('bottom', 'Frequency')
+        self.plot_freq.setLabel('bottom', 'Frequency', units='Hz')
         #self.plot_freq.setXLink(self.plot_time)
         #self.plot_freq.setYLink(self.plot_time)
 
@@ -210,14 +210,14 @@ class RetrievalGraphics(pg.GraphicsLayoutWidget):
 
     def update_labels(self, units: list):
         """ Update the labels with the corresponding units. """
-        self.dtunit = units[0]
-        self.dvunit = units[1]
-        self.plot_original.setLabel('bottom', 'Delay [%s]' % self.dtunit)
-        self.plot_original.setLabel('left', 'SH freq [%s]' % self.dvunit)
-        self.plot_reconstructed.setLabel('bottom', 'Delay [%s]' % self.dtunit)
-        self.plot_reconstructed.setLabel('left', 'SH freq [%s]' % self.dvunit)
-        self.plot_time.setLabel('bottom', 'Time [%s]' % self.dtunit)
-        self.plot_freq.setLabel('bottom', 'Frequency [%s]' % self.dvunit)
+        # self.dtunit = units[0]
+        # self.dvunit = units[1]
+        # self.plot_original.setLabel('bottom', 'Delay [%s]' % self.dtunit)
+        # self.plot_original.setLabel('left', 'SH freq [%s]' % self.dvunit)
+        # self.plot_reconstructed.setLabel('bottom', 'Delay [%s]' % self.dtunit)
+        # self.plot_reconstructed.setLabel('left', 'SH freq [%s]' % self.dvunit)
+        # self.plot_time.setLabel('bottom', 'Time [%s]' % self.dtunit)
+        # self.plot_freq.setLabel('bottom', 'Frequency [%s]' % self.dvunit)
 
 
     def update_title(self, iteration: int, tolerance: float):
