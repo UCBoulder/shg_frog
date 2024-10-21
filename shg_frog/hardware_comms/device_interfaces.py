@@ -18,7 +18,7 @@ class LinearMotor(ABC):
         '''
         Software limits for the stage
 
-        returns: (lower bound, upper bound), in microns
+        returns: (lower bound, upper bound), in meters 
         raises: StageLimitsNotSetException if limits are not
         set
         '''
@@ -36,39 +36,9 @@ class LinearMotor(ABC):
         .connect_devices.connect_devices() or the constructor for the
         subclass.
         
-        limits: listlike containing (lower bound, upper bound), in microns
+        limits: listlike containing (lower bound, upper bound), in meters 
         '''
         self._travel_limits = limits[:2]
-
-    @property
-    def T0_um(self) -> float:
-        '''
-        Location of the stage corresponding to time zero 
-        (i.e. the center of the FROG trace). Calls self._read_T0_from_file()
-        and self._write_T0_to_file() to save T0 to persistent storage between
-        program executions.
-
-        returns: float of stage displacement at time zero, in microns
-        '''
-        try:
-            return self._T0_um
-        except AttributeError:
-            try:
-                self._read_T0_from_file()
-            except FileNotFoundError:
-                self._T0_um = self.position()
-                self._write_T0_to_file()
-            return self._T0_um
-
-    @T0_um.setter
-    def T0_um(self, dist_um: float):
-        '''
-        Sets the stage location corresponding to time zero.
-        
-        dist_um: stage location in microns
-        '''
-        self._T0_um = dist_um
-        self._write_T0_to_file()
 
     @property
     @abstractmethod
@@ -80,60 +50,29 @@ class LinearMotor(ABC):
         '''
         pass
 
-
-    def pos_fs(self) -> float:
-        '''
-        Get stage location in femtoseconds, with respect to time zero.
-
-        returns: float of the stage location, in femtoseconds
-        '''
-        return dist_um_to_T_fs(self.position - self.T0_um)
-
-
     @abstractmethod
     def move_by(self, value: float) -> None:
         '''
         Move the relative position of the stage (micron units).
 
-        value_um: distance of relative move (positive or negative), in microns
+        value_um: distance of relative move (positive or negative), in meters
         raises: StageOutOfBoundException if the move would exceed
         the software limits of the stage.
         '''
         pass
 
-
-    def move_by_fs(self, value_fs: float) -> None:
-        '''
-        Move the relative position of the stage (femtosecond units)
-        
-        value_fs: distance of the relative move (positive or negative), in
-        femtoseconds
-        raises: StageOutOfBoundException if the move would exceed
-        the software limits of the stage.
-        '''
-        self.move_by(T_fs_to_dist_um(value_fs))
 
     @abstractmethod
     def move_abs(self, value: float) -> None:
         '''
         Move to an absolute location (micron units).
 
-        value_um: desired stage location, in microns
+        value: desired stage location, in meters
         raises: StageOutOfBoundException if the move would exceed
         the software limits of the stage.
         '''
         pass
 
-
-    def move_to_um(self, value_fs: float) -> None:
-        '''
-        Move to an absolute location (femtosecond units).
-
-        value_fs: desired stage location, in femtoseconds
-        raises: StageOutOfBoundException if the move would exceed
-        the software limits of the stage.
-        '''
-        self.move_to_um(T_fs_to_dist_um(value_fs))
 
     @abstractmethod
     def home(self, blocking=False) -> None:
@@ -176,33 +115,6 @@ class LinearMotor(ABC):
         '''
         pass
 
-    @property
-    def datapath(self) -> Path:
-        '''
-        Location on the filesystem for persistent storage of configuration information
-        
-        returns: pathlib Path to the directory for persistent storage
-        '''
-        return user_data_path(appname='frogware', appauthor='FCxQM')
-
-
-    def _read_T0_from_file(self) -> None:
-        '''
-        Saves T0 to T0_um.txt in the directory defined by self.datapath
-        '''
-        with open(self.datapath / "T0.txt", "r") as file:
-            self._T0_um = float(file.readline())
-
-
-    def _write_T0_to_file(self) -> None:
-        '''
-        Reads T0 from T0_um.txt in the directory defined by self.datapath
-        '''
-        with open(self.datapath / "T0_um.txt", "w") as file:
-            file.write(f'{self._T0_um}')
-
-
-
 
 class Spectrometer(ABC):
 
@@ -244,17 +156,17 @@ class Spectrometer(ABC):
 
     @property
     @abstractmethod
-    def integration_time_micros(self) -> int:
+    def integration_time(self) -> int:
         '''
-        Reads the integration time in microseconds.
+        Reads the integration time in seconds.
         
-        return: hardware integration time, in microseconds
+        return: hardware integration time, in seconds
         '''
         pass
 
-    @integration_time_micros.setter
+    @integration_time.setter
     @abstractmethod
-    def integration_time_micros(self, value) -> None:
+    def integration_time(self, value) -> None:
         '''
         Sets the integration time in microseconds
         
@@ -285,11 +197,21 @@ class Spectrometer(ABC):
 
     @property
     @abstractmethod
-    def integration_time_micros_limit(self) -> tuple[int, int]:
+    def integration_time_limits(self) -> tuple[int, int]:
         '''
-        Returns the integration time in microseconds.
+        Returns the integration time in seconds.
 
-        return: listlike of (lower bound, upper bound) in microseconds
+        return: listlike of (lower bound, upper bound) in seconds
+        '''
+        pass
+
+    @integration_time_limits.setter
+    @abstractmethod
+    def integration_time_limits(self) -> tuple[int, int]:
+        '''
+        Returns the integration time in seconds.
+
+        return: listlike of (lower bound, upper bound) in seconds
         '''
         pass
 

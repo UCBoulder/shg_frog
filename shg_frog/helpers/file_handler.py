@@ -74,12 +74,15 @@ class FileHandler:
         # Get unique path for new measurement
         measurement_path = self._get_new_measurement_path()
         measurement_path.mkdir(parents=True)
-        # Save Frog image with correct bit depth
-        if data.meta['bit depth'] == 'Mono8':
-            bit_type = np.uint8
-        elif data.meta['bit depth'] == 'Mono12':
-            bit_type = np.uint16
-        imageio.imsave(measurement_path / self.name_frog, data.image.astype(bit_type))
+        # Save Frogeimage with correct bit depth
+        if 'spectrometer' in data.meta:
+            imageio.imsave(measurement_path / self.name_frog, data.image)
+        elif 'camera' in data.meta:
+            if data.meta['bit depth'] == 'Mono8':
+                bit_type = np.uint8
+            elif data.meta['bit depth'] == 'Mono12':
+                bit_type = np.uint16
+            imageio.imsave(measurement_path / self.name_frog, data.image.astype(bit_type))
         # Save settings
         with open(measurement_path / self.name_meta, 'w') as f:
             yaml.dump(data.meta, f, default_flow_style=False)
@@ -131,9 +134,6 @@ class FileHandler:
         # Load frog image
         frog_image = imageio.imread(measurement_path / self.name_frog)
         data = Data(frog_image, meta)
-        # Load configuration
-        #with open(measurement_path / self.name_config, 'r') as f:
-        #    config = yaml.load(f, Loader=yaml.FullLoader)
         return data
 
     def load_seed(self) -> np.ndarray:

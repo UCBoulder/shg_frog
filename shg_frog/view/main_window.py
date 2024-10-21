@@ -170,6 +170,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Open device and respective branch of parameter tree
         if checked:
             self.frog.initialize()
+            self.frog.spectrometer.integration_time = self.par.param('Spectrometer').child('Integration Time').value() * 1e-3
             device = dev[index]
             self.par.param(device).show()
             self.par.param('Stage').show()
@@ -223,6 +224,10 @@ class MainWindow(QtWidgets.QMainWindow):
         span_par = spectrometer_par.child('Span')
         span_par.sigValueChanged.connect(lambda param, val: self.frog.set_span(val * 1e-9))
         self.frog.set_span(span_par.value() * 1e-9)
+        int_time_par = spectrometer_par.child('Integration Time')
+        int_time_par.sigValueChanged.connect(lambda param, val: self.frog.set_integration_time(val * 1e-3))
+
+
 
     def crop_action(self, param, changes):
         """Define what happens when changing the crop/roi parameters in the parameter tree"""

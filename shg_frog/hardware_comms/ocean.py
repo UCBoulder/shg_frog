@@ -1,6 +1,7 @@
 from .device_interfaces import Spectrometer, SpectrometerIntegrationException, SpectrometerAverageException
 from seabreeze.spectrometers import Spectrometer as ooSpec
 import seabreeze
+import numpy as np
 seabreeze.use('cseabreeze')
 
 
@@ -20,20 +21,20 @@ class OceanOpticsSpectrometer(Spectrometer):
         return spectrum
 
     @property
-    def integration_time_micros(self):
-        if self._integration_time_micros is None:
+    def integration_time(self):
+        if self._integration_time is None:
             raise SpectrometerIntegrationException('''Spectrometer integration time 
                                                    not initialized''')
-        return self._integration_time_micros
+        return self._integration_time
 
-    @integration_time_micros.setter
-    def integration_time_micros(self, value):
-        if not (self.integration_time_micros_limit[0] <= value <= self.integration_time_micros_limit[1]):
+    @integration_time.setter
+    def integration_time(self, value):
+        if not (self.integration_time_limits[0] <= value <= self.integration_time_limits[1]):
             raise SpectrometerIntegrationException(
                 '''Integration time exceeds limits''')
         else:
-            self._integration_time_micros = value
-            self.spectrometer.integration_time_micros(value)
+            self._integration_time = value
+            self.spectrometer.integration_time_micros(value * 1e6)
 
     @property
     def scans_to_avg(self):
@@ -53,8 +54,10 @@ class OceanOpticsSpectrometer(Spectrometer):
             #self.spectrometer.f.spectrum_processing.set_scans_to_average(N)
 
     @property
-    def integration_time_micros_limit(self):
-        return self.spectrometer.integration_time_micros_limits
+    def integration_time_limits(self):
+        us = self.spectrometer.integration_time_micros_limits 
+        s = np.array(us[:2])*1e-6
+        return s
 
     @property
     def idn(self):
@@ -62,14 +65,3 @@ class OceanOpticsSpectrometer(Spectrometer):
 
     def close(self):
         self.spectrometer.close()
-
-
-# if __name__ == "__main__":
-#     import seabreeze
-#     seabreeze.use('pyseabreeze')
-#     raw_spec=ooSpec.from_first_available()
-#     spec = OceanOpticsSpectrometer(raw_spec)
-#     print(spec.wavelengths())
-#     print(spec.integration_time_micros_limit)
-#     print(raw_spec.pixels)
-#     print(raw_spec.intensities())

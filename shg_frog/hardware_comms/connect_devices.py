@@ -26,7 +26,6 @@ def connect_devices() -> tuple[LinearMotor, Spectrometer]:
     except:
         raise DeviceCommsException('Spectrometer did not connect')
 
-    spectrometer.integration_time_micros = 30000
     spectrometer.scans_to_avg = 1
     motor.travel_limits = (0, 2e-2)
 

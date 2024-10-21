@@ -195,6 +195,9 @@ class FROG:
     def set_center(self, value):
         '''Slot for updating spectrometer center wl'''
         self.center = value
+
+    def set_integration_time(self, value):
+        self.spectrometer.integration_time = value
     
     def scale_pxl_values(self, frog_array: np.ndarray) -> np.ndarray:
         """Scale Mono12 image to 16bit, else don't do anything."""
@@ -237,7 +240,7 @@ class FROG:
         Assumes that the FROG trace will be interpolated onto a 
         linear frequency grid.'''
         wavelengths = self.spectrometer.wavelengths()
-        return C_MKS * (1/np.min(wavelengths) - 1/np.max(wavelengths))/(len(wavelengths)-1)
+        return float(C_MKS * (1/np.min(wavelengths) - 1/np.max(wavelengths))/(len(wavelengths)-1))
 
     def retrieve_phase(self, sig_retdata, sig_retlabels, sig_rettitles, sig_retaxis):
         """Execute phase retrieval algorithm."""

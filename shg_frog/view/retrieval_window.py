@@ -127,7 +127,7 @@ class RetrievalGraphics(pg.GraphicsLayoutWidget):
         self.plot_reconstructed.setXLink(self.plot_original)
         self.plot_reconstructed.setYLink(self.plot_original)
 
-        y_label = r'$|E|^2 & \phi$'
+        y_label = '|E|^2 & phi (rad)'
         # Add item to show pulse in time domain
         self.nextRow()
         self.plot_time = self.addPlot(colspan=2)
@@ -209,7 +209,8 @@ class RetrievalGraphics(pg.GraphicsLayoutWidget):
 
 
     def update_labels(self, units: list):
-        """ Update the labels with the corresponding units. """
+        """ DEPRECATED: Use adaptive plot units.
+        Update the labels with the corresponding units. """
         # self.dtunit = units[0]
         # self.dvunit = units[1]
         # self.plot_original.setLabel('bottom', 'Delay [%s]' % self.dtunit)
