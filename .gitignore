@@ -2,5 +2,5 @@
 .*
 __pycache__
 Docs
-shg_frog.egg-info/*
+shg_frog.egg-info
 build
