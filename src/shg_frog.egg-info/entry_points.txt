@@ -1,0 +1,2 @@
+[console_scripts]
+shg_frog = shg_frog:scripts.main

@@ -9,13 +9,14 @@ Python Version: 3.7
 import pathlib
 from datetime import datetime
 import numpy as np
+from hardware_comms.linear_motors.linear_motor import LinearMotor
+from hardware_comms.spectrometers.spectrometer import Spectrometer
 from pyqtgraph.parametertree import Parameter
 from . import acquisition
+from .connect_devices import connect_devices
 from . import phase_retrieval
 from ..helpers.file_handler import FileHandler
 from ..helpers.data_types import Data
-from ..hardware_comms.device_interfaces import LinearMotor, Spectrometer
-from ..hardware_comms.connect_devices import connect_devices
 
 C_MKS = 299792458. #m/s
 

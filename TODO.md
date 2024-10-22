@@ -2,8 +2,6 @@
 
 ## Functionality
 
-- fully implement ANDO spectrometer option
-- Add an input for the center wavelength
 - Add warning if camera is saturating.
 
 ## Structure and Repository

@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shg_frog"
+version = "0.1.0"
+authors = [
+  { name="Mike Wahl", email="mike.wahl@colorado.edu" },
+]
+description = "GUI for measuring and reconstructing FROG traces with custom components"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Windows",
+    "Private :: Do Not Upload"
+]
+
+dependencies = [
+  "pyqt5",
+  "pyqtgraph",
+  "pyyaml",
+  "imageio",
+  "docopt",
+  "matplotlib",
+  "hardware_comms@git+https://github.com/UCBoulder/hardware_comms.git",
+  ]
+[project.scripts]
+shg_frog = "shg_frog:scripts.main"

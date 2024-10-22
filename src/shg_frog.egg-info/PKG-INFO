@@ -1,3 +1,23 @@
+Metadata-Version: 2.1
+Name: shg_frog
+Version: 0.1.0
+Summary: GUI for measuring and reconstructing FROG traces with custom components
+Author-email: Mike Wahl <mike.wahl@colorado.edu>
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: Windows
+Classifier: Private :: Do Not Upload
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: pyqt5
+Requires-Dist: pyqtgraph
+Requires-Dist: pyyaml
+Requires-Dist: imageio
+Requires-Dist: docopt
+Requires-Dist: matplotlib
+Requires-Dist: hardware_comms@ git+https://github.com/UCBoulder/hardware_comms.git
+
 # shg_frog
 
 [![MIT licensed](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/jkrauth/shg_frog/blob/main/LICENSE)

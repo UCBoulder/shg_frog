@@ -1,0 +1,7 @@
+pyqt5
+pyqtgraph
+pyyaml
+imageio
+docopt
+matplotlib
+hardware_comms@ git+https://github.com/UCBoulder/hardware_comms.git
