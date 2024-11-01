@@ -41,9 +41,13 @@ class MainWindow(QtWidgets.QMainWindow):
             True: 'rgb(239, 41, 41)',
             False: 'rgb(138, 226, 52)',
         },
-        'btn_measure': {
+        'btn_measure_slow': {
             True: 'Stop',
-            False: 'Measure',
+            False: 'Measure Slow',
+        },
+        'btn_measure_fast': {
+            True: 'Stop',
+            False: 'Measure Fast',
         },
     }
 
@@ -75,8 +79,10 @@ class MainWindow(QtWidgets.QMainWindow):
         # Connect button
         self.btn_connect.toggled.connect(self.connect_action)
 
-        # Measure button
-        self.btn_measure.toggled.connect(self.measure_action)
+        # Measure buttons
+        self.btn_measure_slow.toggled.connect(self.measure_slow_action)
+
+        self.btn_measure_fast.toggled.connect(self.measure_fast_action)
 
         # Save measurement button
         self.btn_save.clicked.connect(self.save_action)
@@ -164,7 +170,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.btn_roi.setEnabled(checked)
         self.btn_connect.setText(btn[checked])
         self.btn_connect.setStyleSheet(f"background-color:{col[checked]}")
-        self.btn_measure.setEnabled(checked)
+        self.btn_measure_slow.setEnabled(checked)
+        self.btn_measure_fast.setEnabled(checked)
         self.btn_collect_spectrum.setEnabled(checked)
         self.btn_subtract_background.setEnabled(checked)
         # Open device and respective branch of parameter tree
@@ -214,7 +221,6 @@ class MainWindow(QtWidgets.QMainWindow):
         tsource_par = camera_par.child('Trigger').child('Source')
         tsource_par.sigValueChanged.connect(lambda _, val: self.frog.camera.set_trig_source(val))
 
-    #TODO
     def tree_spectrometer_actions(self):
         """ Connect ando functionality. """
         spectrometer_par = self.par.param('Spectrometer')
@@ -282,33 +288,56 @@ class MainWindow(QtWidgets.QMainWindow):
             self.frog.measure_background()
 
     @QtCore.pyqtSlot(bool)
-    def measure_action(self, checked):
+    def measure_slow_action(self, checked):
         """Executed when measure/stop button is pressed"""
-        btn = self.DEFAULTS['btn_measure']
-        self.btn_measure.setText(btn[checked])
+        btn = self.DEFAULTS['btn_measure_slow']
+        self.btn_measure_slow.setText(btn[checked])
         if checked:
             # Stop the spectrum collection thread
             self.stop_spectrum_action()
             self.progress.setValue(0)
             # Do actual measurement loop (in separate thread)
-            self.start_measure()
+            self.start_measure(method='slow')
+            self.btn_measure_fast.setEnabled(False)
         if not checked:
             self.frog.stop_measure = True
+            self.btn_measure_fast.setEnabled(True)
 
-    def start_measure(self):
+    @QtCore.pyqtSlot(bool)
+    def measure_fast_action(self, checked):
+        """Executed when measure/stop button is pressed"""
+        btn = self.DEFAULTS['btn_measure_fast']
+        self.btn_measure_fast.setText(btn[checked])
+        if checked:
+            # Stop the spectrum collection thread
+            self.stop_spectrum_action()
+            self.progress.setValue(0)
+            # Do actual measurement loop (in separate thread)
+            self.start_measure(method='fast')
+            self.btn_measure_slow.setEnabled(False)
+        if not checked:
+            self.frog.stop_measure = True
+            self.btn_measure_slow.setEnabled(True)
+
+    def start_measure(self, method='slow'):
         """Retrieves measurement settings and wraps the measure function
         into a thread. Then the signals are implemented."""
         # Create thread
-        self.measure_thread = general_worker.MeasureThread(self.frog.measure)
+        if method=='slow':
+            self.measure_thread = general_worker.MeasureThread(self.frog.measure_slow)
+            self.measure_thread.finished.connect(self.uncheck_btn_measure_slow)
+        elif method=='fast':
+            self.measure_thread = general_worker.MeasureThread(self.frog.measure_fast)
+            self.measure_thread.finished.connect(self.uncheck_btn_measure_fast)
+            
         # Actions when measurement finishes
         self.measure_thread.finished.connect(self.measure_thread.deleteLater)
         self.measure_thread.finished.connect(self.del_mthread)
-        self.measure_thread.finished.connect(self.uncheck_btn_measure)
         # Connect progress button with progress signal
         self.measure_thread.sig_progress.connect(self.modify_progress)
         # Connect plot update with measure signal
         self.measure_thread.sig_measure.connect(self.graphics_widget.update_graphics)
-        #TODO do the scale update here
+        # Update FROG axes scaling
         self.update_frog_axes()
         # Run measurement
         self.measure_thread.start()
@@ -329,8 +358,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def del_specthread(self):
         self.spectrum_thread = None
 
-    def uncheck_btn_measure(self):
-        self.btn_measure.setChecked(False)
+    def uncheck_btn_measure_slow(self):
+        self.btn_measure_slow.setChecked(False)
+
+    def uncheck_btn_measure_fast(self):
+        self.btn_measure_fast.setChecked(False)
 
     def save_action(self):
         """ Open dialog to request a comment, then save the data. """
@@ -416,11 +448,13 @@ class FrogGraphics(pg.GraphicsLayoutWidget):
         # Enable antialiasing for prettier plots
         pg.setConfigOptions(antialias=True)
 
+        # Spectrum plot
         data_slice = self.addPlot(title='Single Slice')
         data_slice.setLabel('bottom', "Wavelength", units='m')
         data_slice.setLabel('left', "Intensity", units='AU')
         self.spectrum_plot = data_slice.plot()
 
+        # FROG spectrogram plot
         vb_full = self.addPlot(title='FROG Trace')
         vb_full.setLabel('bottom',"Time Delay", units='s')
         vb_full.setLabel('left',"Wavelength", units='m')
@@ -430,6 +464,7 @@ class FrogGraphics(pg.GraphicsLayoutWidget):
         lut = cm.getLookupTable(nPts=512)
         self.spectrogram_plot.setLookupTable(lut)
 
+        # Autocorrelation plot
         self.time_axis = None
         autocorr = self.addPlot(title="Autocorrelation")
         autocorr.setLabel('bottom','Time Delay', units='s')

@@ -51,7 +51,6 @@ class FROG:
         self.stop_measure = False
         self.background = 0
 
-        # TODO be able to change sampling size
         self.algo = phase_retrieval.PhaseRetrieval(prep_size=64)
         self.parameters = FrogParams(self._config['pxls width'], self._config['pxls height'])
     def initialize(self) -> None:
@@ -82,8 +81,15 @@ class FROG:
             spectrum[1,:] = spectrum[1,:] -self.background
             sig_measure.emit(3, spectrum.transpose())
 
+    
+    def measure_slow(self, sig_progress, sig_measure):
+        self.measure(sig_progress, sig_measure, method='slow')
 
-    def measure(self, sig_progress, sig_measure):
+    # TODO implement a faster process (desync spectrum w/ stage)
+    def measure_fast(self, sig_progress, sig_measure):
+        self.measure(sig_progress, sig_measure, method='fast')
+
+    def measure(self, sig_progress, sig_measure, method='slow'):
         """Carries out the frog measurement loop."""
         self.stop_measure = False
         # Get measurement settings
@@ -100,13 +106,14 @@ class FROG:
         for i in range(meta['step number']):
             print(f"Loop {i}...")
             # Move stage
-            # TODO make a fast scanning variant that uses move by
-            # self.stage.move_by(step_size)
-            self.stage.move_abs(meta['start position'] + meta['center position'] + i * meta['step size'])
-            self.stage.wait_move_finish(.05)
+            if method=="slow":
+                self.stage.move_abs(meta['start position'] + meta['center position'] + i * meta['step size'])
+                self.stage.wait_move_finish(.05)
+            elif method=="fast":
+                self.stage.move_by(meta['step size'])
+                self.stage.wait_move_finish(.01)
 
             # Record spectrum
-            # y_data = self.camera.get_spectrum()
             spectrum = self.spectrometer.spectrum()
             spectrum[1,:] = spectrum[1,:] -self.background
             intensities = spectrum[1, wlrange]
@@ -119,6 +126,7 @@ class FROG:
             sig_measure.emit(3, spectrum.transpose())
             sig_measure.emit(2, frog_array)
             sig_progress.emit(i+1)
+            print(self.stage.position)
             if self.stop_measure:
                 print("Measurement aborted, data discarded!")
                 return
@@ -156,10 +164,8 @@ class FROG:
         date = datetime.now().strftime('%Y-%m-%d')
         time = datetime.now().strftime('%H:%M:%S')
         step_size = self.parameters.get_step_size()
-        # Time step per pixel in ps
+        # Time step per pixel in s
         ccddt = 2*step_size/(C_MKS)
-        # Frequency step per pixel in THz
-        # TODO 
         # in future maybe write also exposure time, gain, max Intensity, bit depth
         settings = {
             'date': date,
