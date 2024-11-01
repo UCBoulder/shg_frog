@@ -109,7 +109,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Create the plot window
         self.graphics_widget = FrogGraphics()
-        self.gridLayout_2.addWidget(self.graphics_widget,1,0,1,3)
+        self.gridLayout_2.addWidget(self.graphics_widget,1,0,1,5)
 
         # Create instance for region of interest (ROI) window
         # This window will be opened and closed by the class' methods
@@ -417,7 +417,6 @@ class FrogGraphics(pg.GraphicsLayoutWidget):
         pg.setConfigOptions(antialias=True)
 
         data_slice = self.addPlot(title='Single Slice')
-        
         data_slice.setLabel('bottom', "Wavelength", units='m')
         data_slice.setLabel('left', "Intensity", units='AU')
         self.spectrum_plot = data_slice.plot()
@@ -431,18 +430,25 @@ class FrogGraphics(pg.GraphicsLayoutWidget):
         lut = cm.getLookupTable(nPts=512)
         self.spectrogram_plot.setLookupTable(lut)
 
+        self.time_axis = None
+        autocorr = self.addPlot(title="Autocorrelation")
+        autocorr.setLabel('bottom','Time Delay', units='s')
+        autocorr.setLabel('left','Intensity', units='AU')
+        autocorr.setXLink(vb_full)
+        self.autocorr_plot = autocorr.plot()
+
 
     def update_graphics(self, plot_num: int, data):
         """ Update single Slice and FROG trace plots in main window
         Arguments:
         plot_num -- 3: Slice plot
-        plot_num -- 2: FROG plot
+        plot_num -- 2: FROG/autocorrelation plot
         """
         if plot_num==3:
             self.spectrum_plot.setData(data)
         if plot_num==2:
-            # data = np.flipud(data)
             self.spectrogram_plot.setImage(data)
+            self.autocorr_plot.setData(x=self.time_axis,y=np.sum(data,axis=0))
 
 
     def update_frog_axes(self, time_limits: list[float,float], wavelength_limits: list[float,float], time_bins: int, wavelength_bins: int):
@@ -450,6 +456,8 @@ class FrogGraphics(pg.GraphicsLayoutWidget):
         tr.translate(time_limits[0], wavelength_limits[0])
         tr.scale(np.diff(time_limits)/time_bins, np.diff(wavelength_limits)/wavelength_bins)
         self.spectrogram_plot.setTransform(tr)
+
+        self.time_axis = np.linspace(time_limits[0],time_limits[1], time_bins)
 
 class CommentDialog(QtWidgets.QDialog):
     """ For adding a comment when saving the measurement. """

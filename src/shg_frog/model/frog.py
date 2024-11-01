@@ -18,7 +18,7 @@ from . import phase_retrieval
 from ..helpers.file_handler import FileHandler
 from ..helpers.data_types import Data
 
-C_MKS = 299792458. #m/s
+C_MKS = 299792458. #m/
 
 
 
