@@ -25,7 +25,7 @@ dependencies = [
   "imageio",
   "docopt",
   "matplotlib",
-  "hardware_comms@git+https://github.com/UCBoulder/hardware_comms.git",
+  "hardware_comms @ git+https://${GH_TOKEN}@github.com/UCBoulder/hardware_comms.git",
   ]
 
 [project.scripts]
