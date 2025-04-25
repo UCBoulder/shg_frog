@@ -18,9 +18,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Important: get full git history + tags
+
       - name: Setup git credentials for private deps
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Or GITHUB_TOKEN if in same org
+          GH_TOKEN: ${{ secrets.GH_PAT }}  # Or GITHUB_TOKEN if in same org
         run: |
           git config --global url."https://${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
 
