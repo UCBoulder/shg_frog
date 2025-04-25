@@ -233,8 +233,9 @@ class RetrievalGraphics(pg.GraphicsLayoutWidget):
         _, phase_t = self.func_phase_time.getData()
         freq, ampl_f = self.func_ampl_freq.getData()
         _, phase_f = self.func_phase_freq.getData()
-        header = ("time [%s], ampl_t [au], phase_t [mrad], "
-            "frequency [%s], ampl_f [au], phase_f [mrad]") % (self.dtunit, self.dvunit)
+        # TODO What are the units for phase?
+        header = ("time [%s], ampl_t [au], phase_t [rad], "
+            "frequency [%s], ampl_f [au], phase_f [rad]") % (self.dtunit, self.dvunit)
         return header, [time, ampl_t, phase_t, freq, ampl_f, phase_f]
 
     def get_image_data(self):

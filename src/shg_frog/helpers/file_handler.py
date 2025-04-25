@@ -4,20 +4,13 @@ Responsible for loading from files and saving to files.
 from time import strftime
 import pathlib
 import pickle
+import sys
 
 import yaml
 import imageio
 import numpy as np
 
 from .data_types import Data
-
-
-HOME_DIR = pathlib.Path.home()
-# These folders will be created if not existent.
-CONFIG_DIR = HOME_DIR / ".frog_config"
-DATA_DIR = HOME_DIR / "frog_data"
-INTERNAL_DATA_DIR = pathlib.Path(__file__).parents[1] / 'data'
-
 
 DEFAULT_CONFIG = {
     "spectral device": 'Spectrometer',
@@ -33,6 +26,18 @@ DEFAULT_CONFIG = {
     "grating": 0.81, # Grating specified with 0.81nm/mrad
 }
 
+
+HOME_DIR = pathlib.Path.home() 
+# These folders will be created if not existent.
+CONFIG_DIR = HOME_DIR / ".frog_config"
+DATA_DIR = HOME_DIR / "Documents/Data/frog_data" # TODO make this configurable in the program
+
+# Change the internal data directory to the temp directory
+# if compiled (i.e. frozen)
+if getattr(sys, 'frozen', False):
+    INTERNAL_DATA_DIR = pathlib.Path(sys._MEIPASS) / 'data'
+else:
+    INTERNAL_DATA_DIR = pathlib.Path(__file__).parents[1] / 'data'
 
 def get_unique_path(directory: pathlib.Path, name_pattern: str) -> pathlib.Path:
     """ Creates a unique path with a given pattern, using integer numbering.

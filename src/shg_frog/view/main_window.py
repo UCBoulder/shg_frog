@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import QAction
 from PyQt5.QtGui import QTransform
 from pyqtgraph.parametertree import ParameterTree
 import pyqtgraph as pg
+import sys
 from scipy.constants import c as C_MKS
 
 from . import general_worker
@@ -58,8 +59,12 @@ class MainWindow(QtWidgets.QMainWindow):
         # The object which is connected to the window
         self.frog = frog
 
-        # Loading the GUI created with QTdesigner
-        gui_path = pathlib.Path(__file__).parent / 'GUI'
+        # Loading the GUI created with QTdesigner. Loads from 
+        # temp directory if compiled.
+        if getattr(sys, 'frozen', False):
+            gui_path = pathlib.Path(sys._MEIPASS) / 'GUI' 
+        else:
+            gui_path = pathlib.Path(__file__).parent / 'GUI'
         uic.loadUi(gui_path / 'main_window.ui', self)
 
         # Change window title if running in test mode
