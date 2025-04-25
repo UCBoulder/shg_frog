@@ -9,8 +9,6 @@ jobs:
   build:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -27,7 +25,10 @@ jobs:
           python-version: '3.12'  # Use the version you need
 
       - name: Install dependencies
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          git config --global url."https://${GH_TOKEN}@github.com/".insteadOf https://github.com/
           python -m pip install --upgrade pip
           pip install ./ 
           pip install pyinstaller
