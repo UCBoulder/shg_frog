@@ -24,6 +24,9 @@ jobs:
         run: |
           git config --global url."https://${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
 
+      - name: Verify git config
+        run: git config --list --show-origin | grep github
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
