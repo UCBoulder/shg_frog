@@ -20,6 +20,7 @@ classifiers = [
 
 dependencies = [
   "pyqt5",
+  "scipy",
   "pyqtgraph",
   "pyyaml",
   "imageio",

@@ -1,5 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
-
+from PyInstaller.utils.hooks import collect_submodules 
+from PyInstaller.utils.hooks import collect_data_files
+scipy_modules = collect_submodules('scipy')
+scipy_data = collect_data_files('scipy')
+ 
 added_files=[('../src/shg_frog/data', 'data'),
     ('../src/shg_frog/view/GUI','GUI')]
 
@@ -7,8 +11,8 @@ a = Analysis(
     ['..\\src\\shg_frog\\dist_scripts.py'],
     pathex=[],
     binaries=[],
-    datas=added_files,
-    hiddenimports=[],
+    datas=added_files + scipy_data,
+    hiddenimports=['hardware_comms'] + scipy_modules,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

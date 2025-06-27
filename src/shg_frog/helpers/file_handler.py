@@ -100,7 +100,7 @@ class FileHandler:
         return default config."""
         config_path = CONFIG_DIR / self.name_config
         if not CONFIG_DIR.exists():
-            CONFIG_DIR.mkdir()
+            CONFIG_DIR.mkdir(parents=True)
             with open(config_path, 'w') as f:
                 yaml.dump(DEFAULT_CONFIG, f, default_flow_style=False)
             return DEFAULT_CONFIG
