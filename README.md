@@ -42,7 +42,7 @@ pip install git+https://github.com/UCBoulder/shg_frog.git
 Run it by
 
 ```console
-shg_frog [-h]
+shg_frog
 ```
 
 with '-h' to see available options.
