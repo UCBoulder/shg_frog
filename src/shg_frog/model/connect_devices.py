@@ -1,4 +1,4 @@
-from hardware_comms.device import DeviceCommsException
+from hardware_comms.devices import DeviceCommsException
 from hardware_comms.linear_motors.kinesis import ThorlabsKinesisMotor
 from hardware_comms.spectrometers.ocean import OceanOpticsSpectrometer
 from hardware_comms.linear_motors.linear_motor import LinearMotor
