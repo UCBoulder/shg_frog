@@ -35,16 +35,22 @@ jobs:
           pyinstaller shg_frog.spec 
 
       # Archive the build output
-      - name: Create archive (linux/mac)
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+      - name: Create archive (linux)
+        if: matrix.os == 'ubuntu-latest' 
         run: |
           cd dist
-          zip -r ../shg_frog-${{ github.event.release.tag_name }}-${{ matrix.os }}.zip shg_frog/
+          zip -r ../shg_frog-${{ github.event.release.tag_name }}-linux.zip shg_frog/
+
+      - name: Create archive (mac)
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd dist
+          zip -r ../shg_frog-${{ github.event.release.tag_name }}-mac.zip shg_frog/
 
       - name: Create archive (windows)
         if: matrix.os == 'windows-latest'
         run: |
-          Compress-Archive -Path dist\shg_frog\* -DestinationPath shg_frog-${{ github.event.release.tag_name }}-${{ matrix.os }}.zip
+          Compress-Archive -Path dist\shg_frog\* -DestinationPath shg_frog-${{ github.event.release.tag_name }}-windows.zip
 
       # Upload the archive as a release asset
       - name: Upload release asset (windows)
