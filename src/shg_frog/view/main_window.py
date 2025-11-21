@@ -18,11 +18,11 @@ import pyqtgraph as pg
 import sys
 from scipy.constants import c as C_MKS
 
-from . import general_worker
-from .roi_window import ROIGraphics
-from .retrieval_window import RetrievalWindow
-from ..model.frog import FROG
-from ..helpers.file_handler import DATA_DIR, INTERNAL_DATA_DIR
+import shg_frog.view.general_worker as general_worker
+from shg_frog.view.roi_window import ROIGraphics
+from shg_frog.view.retrieval_window import RetrievalWindow
+from shg_frog.model.frog import FROG
+from shg_frog.helpers.file_handler import DATA_DIR, INTERNAL_DATA_DIR
 
 class MainWindow(QtWidgets.QMainWindow):
     """This is the main window of the GUI for the FROG interface.
@@ -61,8 +61,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Loading the GUI created with QTdesigner. Loads from 
         # temp directory if compiled.
-        if getattr(sys, 'frozen', False):
-            gui_path = pathlib.Path(sys._MEIPASS) / 'GUI' 
+        if hasattr(sys, '_MEIPASS'):
+            gui_path = pathlib.Path(sys._MEIPASS) / 'view'/ 'GUI' 
         else:
             gui_path = pathlib.Path(__file__).parent / 'GUI'
         uic.loadUi(gui_path / 'main_window.ui', self)

@@ -5,3 +5,4 @@ shg_frog.egg-info
 build
 dist/FROGware.exe
 .vscode/settings.json
+dist

@@ -40,7 +40,7 @@ Date created: 2019/11/27
 import numpy as np
 import matplotlib.pyplot as plt
 
-from ..helpers.file_handler import FileHandler
+from shg_frog.helpers.file_handler import FileHandler
 
 
 def rms_diff(F1: np.ndarray, F2: np.ndarray) -> float:

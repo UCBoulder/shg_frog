@@ -12,11 +12,11 @@ import numpy as np
 from hardware_comms.linear_motors.linear_motor import LinearMotor
 from hardware_comms.spectrometers.spectrometer import Spectrometer
 from pyqtgraph.parametertree import Parameter
-from . import acquisition
-from .connect_devices import connect_devices
-from . import phase_retrieval
-from ..helpers.file_handler import FileHandler
-from ..helpers.data_types import Data
+import shg_frog.model.acquisition
+from shg_frog.model.connect_devices import connect_devices
+import shg_frog.model.phase_retrieval as phase_retrieval
+from shg_frog.helpers.file_handler import FileHandler
+from shg_frog.helpers.data_types import Data
 
 C_MKS = 299792458. #m/
 

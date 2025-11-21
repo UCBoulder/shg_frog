@@ -5,12 +5,11 @@ from time import strftime
 import pathlib
 import pickle
 import sys
-
 import yaml
 import imageio
 import numpy as np
 
-from .data_types import Data
+from shg_frog.helpers.data_types import Data
 
 DEFAULT_CONFIG = {
     "spectral device": 'Spectrometer',

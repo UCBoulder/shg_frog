@@ -13,8 +13,8 @@ import sys
 from docopt import docopt
 from PyQt5.QtWidgets import QApplication
 
-from .model.frog import FROG
-from .view.main_window import MainWindow
+from shg_frog.model.frog import FROG
+from shg_frog.view.main_window import MainWindow
 
 # Implement application execution options:
 # Running a test mode with virtual devices
