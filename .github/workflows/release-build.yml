@@ -30,25 +30,9 @@ jobs:
           pip install ./
 
       # Build with PyInstaller
-      - name: Build windows executable
-        if: matrix.os == 'windows-latest'
+      - name: Build executable
         run: |
-          pyinstaller src/shg_frog/scripts.py `
-            --noconfirm `
-            --noconsole `
-            --clean `
-            --name "shg_frog" `
-            --add-data "src/shg_frog/data;data" `
-
-      - name: Build linux/mac executable
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
-        run: |
-          pyinstaller src/shg_frog/scripts.py \
-            --noconfirm \
-            --noconsole \
-            --clean \
-            --name "shg_frog" \
-            --add-data "src/shg_frog/data:data" \
+          pyinstaller shg_frog.spec 
 
       # Archive the build output
       - name: Create archive (linux/mac)
