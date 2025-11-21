@@ -33,7 +33,7 @@ jobs:
       - name: Build windows executable
         if: matrix.os == 'windows-latest'
         run: |
-          pyinstaller main.py `
+          pyinstaller scripts.py `
             --noconfirm `
             --noconsole `
             --clean `
@@ -43,7 +43,7 @@ jobs:
       - name: Build linux/mac executable
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         run: |
-          pyinstaller main.py \
+          pyinstaller scripts.py \
             --noconfirm \
             --noconsole \
             --clean \
