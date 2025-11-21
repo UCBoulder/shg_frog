@@ -25,7 +25,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='scripts',
+    name='shg_frog',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

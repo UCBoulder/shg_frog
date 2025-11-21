@@ -29,6 +29,7 @@ The phase retrieval window:
 ### Software dependencies
 
 * Python version  >=3.10, <=3.12
+* Drivers for spectrometer (e.g. OceanView) and stage (e.g. Thorlabs [Kinesis](https://www.thorlabs.com/software_pages/ViewSoftwarePage.cfm?Code=Motion_Control&viewtab=0))
 
 
 ### Download and start
