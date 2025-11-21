@@ -20,6 +20,7 @@ classifiers = [
 
 dependencies = [
   "pyqt5",
+  "pyinstaller",
   "scipy",
   "pyqtgraph",
   "pyyaml",
