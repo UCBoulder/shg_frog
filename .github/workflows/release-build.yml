@@ -47,9 +47,26 @@ jobs:
           Compress-Archive -Path dist\shg_frog\* -DestinationPath shg_frog-${{ github.event.release.tag_name }}-${{ matrix.os }}.zip
 
       # Upload the archive as a release asset
-      - name: Upload release asset
+      - name: Upload release asset (windows)
+        if: matrix.os == 'windows-latest'
         uses: softprops/action-gh-release@v2
         with:
-          files: shg_frog-${{ github.event.release.tag_name }}-${{ matrix.os }}.zip
+          files: shg_frog-${{ github.event.release.tag_name }}-windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release asset (mac)
+        if: matrix.os == 'macos-latest'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: shg_frog-${{ github.event.release.tag_name }}-mac.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release asset (linux)
+        if: matrix.os == 'ubuntu-latest'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: shg_frog-${{ github.event.release.tag_name }}-linux.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
