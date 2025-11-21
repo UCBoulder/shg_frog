@@ -28,7 +28,7 @@ The phase retrieval window:
 
 ### Software dependencies
 
-* Python version >= 3.10
+* Python version  >=3.10, <=3.12
 
 
 ### Download and start

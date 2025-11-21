@@ -1,1 +1,0 @@
-hardware_comms @ git+https://github.com/UCBoulder/hardware_comms.git
