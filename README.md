@@ -28,33 +28,36 @@ The phase retrieval window:
 
 ### Software dependencies
 
-* Python version  >=3.10, <=3.12
+* Python version  >=3.10, <=3.12 if installing via `pip`
 * Drivers for spectrometer (e.g. OceanView) and stage (e.g. Thorlabs [Kinesis](https://www.thorlabs.com/software_pages/ViewSoftwarePage.cfm?Code=Motion_Control&viewtab=0))
 
+### Executable
+Want a smoother experience? If so, download the archive from [releases](https://github.com/UCBoulder/shg_frog/releases) and run the executable.
 
-### Download and start
+### Debugging
 
-Install the FROG software (ideally in a virtual python environment) by
+If you're having issues and want to make changes to the code, it is also packaged for installation via `pip`. Clone the repository, navigate to its root directory, then install an editable version of the code:
 
 ```console
-pip install git+https://github.com/UCBoulder/shg_frog.git
+pip install -e ./
 ```
 
-Run it by
+Run it with,
 
 ```console
 shg_frog
 ```
-
 with '-h' to see available options.
+
+### Configuration
 
 After you started the software once, you will have a `.frog_config` folder in your home directory. It contains a `config.yml` file that should be adapted to your setup.
 
-Measurement data will be saved into a `frog_data`folder, also in your home directory.
+Measurement data will be saved into a `frog_data` folder, also in your home directory.
 
 Upon startup you will have example data loaded which you can use for a first pulse reconstruction. This is overwritten as soon as you do a measurement.
 
-### Notes on Terminology and Parameter options 
+## Notes on Terminology and Parameter options 
 **Phase Retrieval**
 
 * The GP algorithm gives generally better results with a lower error (G in the phase retrieval GUI). In some cases, however, it does not converge. In these cases the ptychographic algorithm provides a  solution. 
@@ -65,7 +68,7 @@ Upon startup you will have example data loaded which you can use for a first pul
 * Offset refers to the stage position (i.e. mirror position) at which the FROG signal is maximum and is the point around which the FROG trace is measured, over a range specified by "Number of steps" and "Step size". 
 
 
-### Hardware
+## Hardware
 
 The original code by [jkrauth](https://github.com/jkrauth/shg_frog) is written to use
 a camera and dispersive element to resolve the spectrum. Here, we use our own 
